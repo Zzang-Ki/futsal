@@ -84,10 +84,10 @@
     background-image: url(Timer_BG.png), url(Timer_BG.jpg);
     background-size: cover; background-position: center; background-repeat: no-repeat;
   }
-  #viewTimer::before { content: ''; position: absolute; left: 0; top: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); pointer-events: none; }
+  #viewTimer::before { content: ''; position: absolute; left: 0; top: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); pointer-events: none; }
   #viewTimer > * { position: relative; z-index: 1; }
   body.flash #viewTimer::before { animation: flashOv 0.5s steps(1) 8; }
-  @keyframes flashOv { 0% { background: var(--yellow); } 50% { background: rgba(0,0,0,0.8); } }
+  @keyframes flashOv { 0% { background: var(--yellow); } 50% { background: rgba(0,0,0,0.6); } }
 
   /* ---------- 설정 ---------- */
   .settings { width: 100%; display: none; flex-direction: column; gap: 1.6vh; margin-top: 3vh; }
@@ -287,7 +287,7 @@
 (function () {
   'use strict';
 
-  var APP_VERSION = '0.3.4';
+  var APP_VERSION = '0.3.5';
   var KEY = 'fm.timer.v1';
   var MIN_MS = 60 * 1000;
   var MAX_MS = 99 * 60 * 1000;
