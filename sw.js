@@ -4,7 +4,7 @@
 var CACHE = 'futsal-manager-v1';
 var CORE = ['./', './index.html', './manifest.json'];
 /* 이미지는 없어도 설치가 실패하지 않도록 따로 저장을 시도한다 */
-var OPTIONAL = ['./App_Icon_512.png', './Favicon_FM_192.png', './Time_BG.png', './Time_BG.jpg'];
+var OPTIONAL = ['./App_Icon_512.png', './Favicon_FM_192.png', './Timer_BG.png', './Timer_BG.jpg'];
 var TIMEOUT_MS = 3000;
 
 self.addEventListener('install', function (e) {

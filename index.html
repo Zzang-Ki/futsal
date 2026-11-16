@@ -75,17 +75,13 @@
     font-size: min(19vw, 40vh); line-height: 1.1;
     text-shadow: 0 0 0.05em currentColor, 0 0.03em 0.08em rgba(0,0,0,0.8);
   }
-  .time::before {              /* 꺼진 세그먼트(전광판 느낌) */
-    content: '88:88'; position: absolute; left: 0; top: 0;
-    color: rgba(255,255,255,0.09); text-shadow: none; pointer-events: none;
-  }
   body:not([data-status="idle"]) .time { font-size: min(23vw, 62vh); }
 
-  /* ---------- 타이머 배경 이미지 (Time_BG.png 또는 Time_BG.jpg, 없으면 검정) ---------- */
+  /* ---------- 타이머 배경 이미지 (Timer_BG.png 또는 Timer_BG.jpg, 없으면 검정) ---------- */
   #viewTimer {
     position: relative;
     background-color: var(--bg);
-    background-image: url(Time_BG.png), url(Time_BG.jpg);
+    background-image: url(Timer_BG.png), url(Timer_BG.jpg);
     background-size: cover; background-position: center; background-repeat: no-repeat;
   }
   #viewTimer::before { content: ''; position: absolute; left: 0; top: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.35); pointer-events: none; }
@@ -229,24 +225,18 @@
         <label>경기 시간</label>
         <div class="opts" id="presets">
           <button class="opt step" data-step="-60000">−1분</button>
-          <button class="opt step" data-step="-10000">−10초</button>
-          <button class="opt" data-min="5">5분</button>
           <button class="opt" data-min="8">8분</button>
           <button class="opt" data-min="10">10분</button>
           <button class="opt" data-min="12">12분</button>
           <button class="opt" data-min="15">15분</button>
-          <button class="opt" data-min="20">20분</button>
-          <button class="opt step" data-step="10000">+10초</button>
           <button class="opt step" data-step="60000">+1분</button>
         </div>
       </div>
       <div class="row">
         <label>종료 전 알림</label>
         <div class="opts" id="warns">
-          <button class="opt" data-warn="0">끔</button>
-          <button class="opt" data-warn="30">30초 전</button>
+          <button class="opt" data-warn="0">없음</button>
           <button class="opt" data-warn="60">1분 전</button>
-          <button class="opt" data-warn="120">2분 전</button>
           <button class="opt" data-warn="180">3분 전</button>
         </div>
       </div>
@@ -297,10 +287,10 @@
 (function () {
   'use strict';
 
-  var APP_VERSION = '0.3.1';
+  var APP_VERSION = '0.3.3';
   var KEY = 'fm.timer.v1';
-  var MIN_MS = 10 * 1000;
-  var MAX_MS = 99 * 60 * 1000 + 50 * 1000;
+  var MIN_MS = 60 * 1000;
+  var MAX_MS = 99 * 60 * 1000;
 
   var $ = function (id) { return document.getElementById(id); };
   var elTime = $('time');
@@ -322,6 +312,7 @@
   /* ---------- 상태 ---------- */
   var DEFAULTS = { durationMs: 10 * 60 * 1000, warnSec: 60, status: 'idle', endAt: 0, remainingMs: 10 * 60 * 1000, warned: false };
   var S = load();
+  if ([0, 60, 180].indexOf(S.warnSec) < 0) S.warnSec = 60;   /* 없어진 알림 옵션은 1분 전으로 */
 
   function load() {
     var s = {};
@@ -517,18 +508,40 @@
     o.start(t); lfo.start(t); o.stop(t + dur + 0.02); lfo.stop(t + dur + 0.02);
     track(o); track(lfo);
   }
+  /* 나무 딱따기(클래퍼) 느낌의 '딱' 소리: 짧은 잡음 + 낮은 울림 */
+  var noiseBuf = null;
+  function clack(t) {
+    if (!noiseBuf) {
+      noiseBuf = ctx.createBuffer(1, Math.floor(ctx.sampleRate * 0.12), ctx.sampleRate);
+      var d = noiseBuf.getChannelData(0);
+      for (var i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+    }
+    var n = ctx.createBufferSource(), bp = ctx.createBiquadFilter(), ng = ctx.createGain();
+    n.buffer = noiseBuf; bp.type = 'bandpass'; bp.frequency.value = 2200; bp.Q.value = 1.2;
+    ng.gain.setValueAtTime(1.0, t);
+    ng.gain.exponentialRampToValueAtTime(0.0001, t + 0.07);
+    n.connect(bp); bp.connect(ng); ng.connect(ctx.destination);
+    n.start(t); n.stop(t + 0.12); track(n);
+
+    var o = ctx.createOscillator(), og = ctx.createGain();
+    o.type = 'triangle';
+    o.frequency.setValueAtTime(1250, t);
+    o.frequency.exponentialRampToValueAtTime(820, t + 0.06);
+    og.gain.setValueAtTime(0.9, t);
+    og.gain.exponentialRampToValueAtTime(0.0001, t + 0.09);
+    o.connect(og); og.connect(ctx.destination);
+    o.start(t); o.stop(t + 0.1); track(o);
+  }
   function playWarn() {
     if (!unlockAudio()) return;
     var t = ctx.currentTime + 0.05;
-    for (var i = 0; i < 3; i++) beep(t + i * 0.32, 0.2, 1568);
+    for (var i = 0; i < 3; i++) clack(t + i * 0.2);
   }
+  /* 종료 휘슬: 삑, 삑, 삑~~ (한 번만) */
   function playEnd() {
     if (!unlockAudio()) return;
     var t = ctx.currentTime + 0.05;
-    for (var k = 0; k < 2; k++) {
-      var b = t + k * 2.9;
-      whistle(b, 0.4); whistle(b + 0.55, 0.4); whistle(b + 1.1, 1.4);
-    }
+    whistle(t, 0.35); whistle(t + 0.5, 0.35); whistle(t + 1.0, 2.0);
   }
 
   /* ---------- 화면 꺼짐 방지 ---------- */
