@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#0A0D0B">
 <meta name="mobile-web-app-capable" content="yes">
 <link rel="manifest" href="manifest.json">
-<link rel="icon" href="icon-192.png">
+<link rel="icon" type="image/png" href="Favicon_FM_192.png">
 <title>풋살 매니저</title>
 <style>
   :root {
@@ -19,6 +19,8 @@
     --yellow: #FFD60A;
     --red: #FF3B30;
   }
+  /* 전광판 숫자 글꼴: DSEG7 Classic Bold (SIL Open Font License 1.1, (c) Keshikan) — 파일 안에 내장 */
+  @font-face { font-family: 'FMDigits'; font-weight: 700; src: url(data:font/woff2;base64,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) format('woff2'); }
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
   html, body { height: 100%; overflow: hidden; }
   body {
@@ -40,6 +42,8 @@
     border-bottom: 2px solid var(--line);
   }
   .brand { font-size: max(18px, 3vh); font-weight: 800; letter-spacing: -0.02em; }
+  .brand { display: flex; align-items: center; }
+  .brand img { display: block; height: max(40px, 5.6vh); width: auto; max-width: 24vw; object-fit: contain; }
   .spacer { flex: 1; }
   .chip {
     font-size: max(13px, 2vh); font-weight: 700; color: var(--bg);
@@ -66,23 +70,31 @@
     letter-spacing: 0.04em; line-height: 1.2;
   }
   .time {
-    font-size: min(22vw, 34vh);
-    font-weight: 800; line-height: 1.05;
-    font-variant-numeric: tabular-nums; font-feature-settings: "tnum";
-    letter-spacing: -0.02em;
+    position: relative; display: inline-block; white-space: nowrap;
+    font-family: 'FMDigits', system-ui, sans-serif; font-weight: 700;
+    font-size: min(19vw, 40vh); line-height: 1.1;
+    text-shadow: 0 0 0.05em currentColor, 0 0.03em 0.08em rgba(0,0,0,0.8);
   }
-  body:not([data-status="idle"]) .time { font-size: min(30vw, 54vh); }
+  .time::before {              /* 꺼진 세그먼트(전광판 느낌) */
+    content: '88:88'; position: absolute; left: 0; top: 0;
+    color: rgba(255,255,255,0.09); text-shadow: none; pointer-events: none;
+  }
+  body:not([data-status="idle"]) .time { font-size: min(23vw, 62vh); }
 
-  .progress {
-    width: 100%; height: max(10px, 1.6vh); flex: none;
-    background: var(--panel); border-radius: 999px; overflow: hidden;
-    margin-top: 1vh;
+  /* ---------- 타이머 배경 이미지 (Time_BG.png 또는 Time_BG.jpg, 없으면 검정) ---------- */
+  #viewTimer {
+    position: relative;
+    background-color: var(--bg);
+    background-image: url(Time_BG.png), url(Time_BG.jpg);
+    background-size: cover; background-position: center; background-repeat: no-repeat;
   }
-  .progress > div { height: 100%; width: 100%; background: var(--green); border-radius: 999px; transform-origin: left center; }
-  body[data-status="idle"] .progress { visibility: hidden; height: 0; margin: 0; }
+  #viewTimer::before { content: ''; position: absolute; left: 0; top: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.35); pointer-events: none; }
+  #viewTimer > * { position: relative; z-index: 1; }
+  body.flash #viewTimer::before { animation: flashOv 0.5s steps(1) 8; }
+  @keyframes flashOv { 0% { background: var(--yellow); } 50% { background: rgba(0,0,0,0.35); } }
 
   /* ---------- 설정 ---------- */
-  .settings { width: 100%; display: none; flex-direction: column; gap: 1.6vh; margin-top: 1.5vh; }
+  .settings { width: 100%; display: none; flex-direction: column; gap: 1.6vh; margin-top: 3vh; }
   body[data-status="idle"] .settings { display: flex; }
   .row { display: flex; align-items: center; gap: 1vw; }
   .row > label {
@@ -128,14 +140,7 @@
   body.flash .time, body.flash .status { animation: flashYText 0.5s steps(1) 8; }
   @keyframes flashYText { 0% { color: #000; } 50% { color: var(--yellow); } }
 
-  body[data-status="ended"] { animation: flashR 0.8s steps(1) infinite; }
-  @keyframes flashR { 0% { background: var(--red); } 50% { background: #5A0B07; } }
-  body[data-status="ended"] .time, body[data-status="ended"] .status { color: #fff; }
-  body[data-status="ended"] .status { font-size: max(32px, 9vh); }
-  body[data-status="ended"] .time { font-size: min(22vw, 38vh); }
-  body[data-status="ended"] .progress { visibility: hidden; }
-  body[data-status="ended"] .btn-main { background: #fff; color: #000; }
-  body[data-status="ended"] .topbar { border-color: rgba(255,255,255,0.4); }
+  body[data-status="ended"] .time { color: var(--red); }
 
   /* ---------- 화면 전환 ---------- */
   .view { flex: 1; min-height: 0; display: flex; flex-direction: column; }
@@ -152,11 +157,11 @@
   /* ---------- 상단 작은 타이머 (전술판에서 표시) ---------- */
   .mini { display: flex; align-items: center; gap: 1.2vw; }
   .mini-status { font-size: max(14px, 2.4vh); font-weight: 800; color: var(--dim); }
-  .mini-time { font-size: max(30px, 6.4vh); font-weight: 800; line-height: 1; font-variant-numeric: tabular-nums; font-feature-settings: "tnum"; }
+  .mini-time { font-family: 'FMDigits', system-ui, sans-serif; font-weight: 700; font-size: max(26px, 5.2vh); line-height: 1; }
   .mini-btn { min-width: 9vw; }
   body.warn .mini-time, body.warn .mini-status { color: var(--yellow); }
   body.flash .mini-time, body.flash .mini-status { animation: flashYText 0.5s steps(1) 8; }
-  body[data-status="ended"] .mini-time, body[data-status="ended"] .mini-status { color: #fff; }
+  body[data-status="ended"] .mini-time, body[data-status="ended"] .mini-status { color: var(--red); }
   body[data-status="paused"] .mini-time { animation: blink 1.2s steps(1) infinite; }
 
   /* ---------- 전술판 ---------- */
@@ -199,7 +204,7 @@
 <body data-status="idle" data-view="timer">
 
   <header class="topbar">
-    <div class="brand">풋살 매니저</div>
+    <div class="brand" id="brand"><img id="logo" src="Full_Logo.png" alt="풋살 매니저"></div>
     <nav class="tabs" id="tabs">
       <button class="tab sel" data-view="timer">타이머</button>
       <button class="tab" data-view="board">전술판</button>
@@ -217,9 +222,7 @@
 
   <div class="view" id="viewTimer">
   <main class="stage">
-    <div class="status" id="status">경기 시간</div>
     <div class="time" id="time">10:00</div>
-    <div class="progress"><div id="bar"></div></div>
 
     <section class="settings">
       <div class="row">
@@ -294,17 +297,27 @@
 (function () {
   'use strict';
 
-  var APP_VERSION = '0.2.0';
+  var APP_VERSION = '0.3.1';
   var KEY = 'fm.timer.v1';
   var MIN_MS = 10 * 1000;
   var MAX_MS = 99 * 60 * 1000 + 50 * 1000;
 
   var $ = function (id) { return document.getElementById(id); };
-  var elTime = $('time'), elStatus = $('status'), elBar = $('bar');
+  var elTime = $('time');
   var elMain = $('main'), elReset = $('reset'), elLock = $('lockChip');
   var elMiniTime = $('miniTime'), elMiniMain = $('miniMain'), elMiniStatus = $('miniStatus');
 
   $('version').textContent = 'v' + APP_VERSION;
+
+  /* 로고: Full_Logo.png → .svg → .jpg 순으로 찾고, 없으면 글자로 표시한다 */
+  (function () {
+    var img = $('logo'), exts = ['svg', 'jpg'];
+    img.addEventListener('error', function () {
+      var ext = exts.shift();
+      if (ext) img.src = 'Full_Logo.' + ext;
+      else $('brand').textContent = '풋살 매니저';
+    });
+  })();
 
   /* ---------- 상태 ---------- */
   var DEFAULTS = { durationMs: 10 * 60 * 1000, warnSec: 60, status: 'idle', endAt: 0, remainingMs: 10 * 60 * 1000, warned: false };
@@ -393,7 +406,6 @@
     if (st === 'running') label = inWarn ? '종료 ' + warnLabel(S.warnSec) + ' 전' : '진행 중';
     else if (st === 'paused') label = '일시정지';
     else if (st === 'ended') label = '경기 종료';
-    setText(elStatus, 'status', label);
 
     var mainLabel = '시작';
     if (st === 'running') mainLabel = '일시정지';
@@ -403,10 +415,6 @@
     setText(elMiniTime, 'mtime', fmt(st === 'idle' ? S.durationMs : r));
     setText(elMiniMain, 'mmain', mainLabel);
     setText(elMiniStatus, 'mstatus', st === 'idle' || (st === 'running' && !inWarn) ? '' : label);
-
-    var p = S.durationMs > 0 ? Math.max(0, Math.min(1, r / S.durationMs)) : 0;
-    var ps = 'scaleX(' + p.toFixed(4) + ')';
-    if (last.bar !== ps) { last.bar = ps; elBar.style.transform = ps; }
 
     if (st === 'idle') {
       var key = S.durationMs + '|' + S.warnSec;

@@ -2,12 +2,18 @@
    온라인이면 최신 파일을 받아 저장하고, 오프라인(또는 3초 안에 응답 없음)이면 저장본을 쓴다.
    앱을 업데이트할 때 이 파일은 바꿀 필요가 없다. */
 var CACHE = 'futsal-manager-v1';
-var CORE = ['./', './index.html', './manifest.json', './icon-192.png', './icon-512.png'];
+var CORE = ['./', './index.html', './manifest.json'];
+/* 이미지는 없어도 설치가 실패하지 않도록 따로 저장을 시도한다 */
+var OPTIONAL = ['./App_Icon_512.png', './Favicon_FM_192.png', './Time_BG.png', './Time_BG.jpg'];
 var TIMEOUT_MS = 3000;
 
 self.addEventListener('install', function (e) {
   e.waitUntil(
-    caches.open(CACHE).then(function (c) { return c.addAll(CORE); }).then(function () { return self.skipWaiting(); })
+    caches.open(CACHE).then(function (c) {
+      return c.addAll(CORE).then(function () {
+        return Promise.all(OPTIONAL.map(function (u) { return c.add(u).catch(function () {}); }));
+      });
+    }).then(function () { return self.skipWaiting(); })
   );
 });
 
