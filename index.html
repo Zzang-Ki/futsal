@@ -91,17 +91,17 @@
   @keyframes flashOv { 0% { background: var(--yellow); } 50% { background: rgba(0,0,0,0.6); } }
 
   /* ---------- 설정 ---------- */
-  .settings {
-    width: 100%; display: none; flex-direction: column; gap: 1.6vh; margin-top: 2.2vh;
-    padding: 1.8vh 1.4vw;
-    background: rgba(8,11,9,0.80); border: 2px solid rgba(255,255,255,0.16); border-radius: 22px;
-    box-shadow: 0 8px 24px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.08);
-  }
+  .settings { width: 100%; display: none; flex-direction: column; gap: 1.4vh; margin-top: 2.2vh; }
   body[data-status="idle"] .settings { display: flex; }
-  .row { display: flex; align-items: center; gap: 1vw; }
+  .row {
+    display: flex; align-items: center; gap: 1vw;
+    padding: 1.3vh 1.4vw;
+    background: rgba(8,11,9,0.80); border: 2px solid rgba(255,255,255,0.16); border-radius: 20px;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.08);
+  }
   .row > label {
     flex: none; width: 12vw; padding-left: 0.6vw;
-    font-size: max(17px, 2.9vh); font-weight: 700; color: var(--text);
+    font-size: max(17px, 2.9vh); font-weight: 700; color: #A9B8AE;
   }
   .opts { flex: 1; display: flex; gap: 0.8vw; }
   .opt {
@@ -325,7 +325,7 @@
 (function () {
   'use strict';
 
-  var APP_VERSION = '0.4.0';
+  var APP_VERSION = '0.4.2';
   var KEY = 'fm.timer.v1';
   var MIN_MS = 60 * 1000;
   var MAX_MS = 99 * 60 * 1000;
