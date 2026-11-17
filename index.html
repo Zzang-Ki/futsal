@@ -260,6 +260,33 @@
   .tool.sel { background: var(--text); color: var(--bg); border-color: var(--text); }
   .tool.sel i { border-color: #000; }
   .tool:disabled { opacity: 0.4; }
+
+  /* ---------- 전환 효과 ---------- */
+  .topbar { view-transition-name: topbar; }
+  #viewTimer, #viewBoard { view-transition-name: content; }
+  #viewTimer .time { view-transition-name: clock; }
+  #viewTimer .settings { view-transition-name: settings; }
+  #viewTimer .controls { view-transition-name: controls; }
+  ::view-transition-group(root), ::view-transition-old(root), ::view-transition-new(root) { animation: none; }
+  ::view-transition-group(*) { animation-duration: 0.3s; animation-timing-function: cubic-bezier(.25,.8,.25,1); }
+  ::view-transition-old(*), ::view-transition-new(*) { animation-duration: 0.25s; }
+  /* 탭 전환: 살짝 밀며 페이드 */
+  :root[data-vt="tab"]::view-transition-group(content) { animation: none; }
+  :root[data-vt="tab"][data-dir="fwd"]::view-transition-old(content),
+  :root[data-vt="tab"][data-dir="back"]::view-transition-old(content) { animation: vtFadeOut 0.18s ease both; }
+  :root[data-vt="tab"][data-dir="fwd"]::view-transition-new(content) { animation: vtSoftIn 0.28s ease-out both; --vt-x: 40px; }
+  :root[data-vt="tab"][data-dir="back"]::view-transition-new(content) { animation: vtSoftIn 0.28s ease-out both; --vt-x: -40px; }
+  /* 킥오프·경기 종료: 숫자는 부드럽게 커지고/작아지고, 설정은 아래로 살짝 밀리며 사라지고/나타남 */
+  :root[data-vt="kick"]::view-transition-group(clock) { animation-duration: 0.38s; }
+  :root[data-vt="kick"]::view-transition-old(settings) { animation: vtDownOut 0.2s ease-in both; }
+  :root[data-vt="kick"]::view-transition-new(settings) { animation: vtUpIn 0.3s ease-out 0.08s both; }
+  :root[data-vt="kick"]::view-transition-old(controls) { animation: vtFadeOut 0.15s ease both; }
+  :root[data-vt="kick"]::view-transition-new(controls) { animation: vtSoftUp 0.28s ease-out 0.06s both; }
+  @keyframes vtFadeOut { to { opacity: 0; } }
+  @keyframes vtSoftIn { from { opacity: 0; transform: translateX(var(--vt-x)); } }
+  @keyframes vtDownOut { to { opacity: 0; transform: translateY(24px); } }
+  @keyframes vtUpIn { from { opacity: 0; transform: translateY(24px); } }
+  @keyframes vtSoftUp { from { opacity: 0; transform: translateY(12px); } }
 </style>
 </head>
 <body data-status="idle" data-view="timer">
@@ -355,7 +382,7 @@
 (function () {
   'use strict';
 
-  var APP_VERSION = '0.4.9';
+  var APP_VERSION = '0.5.0';
   var KEY = 'fm.timer.v1';
   var MIN_MS = 60 * 1000;
   var MAX_MS = 99 * 60 * 1000;
@@ -412,6 +439,7 @@
     S.status = 'paused';
     save(); lockOff(); render();
   }
+  function endWithTransition() { if (view === 'timer') withTransition('kick', reset); else reset(); }
   function reset() {
     S.status = 'idle'; S.remainingMs = S.durationMs; S.warned = false; S.endAt = 0;
     stopSounds(); document.body.classList.remove('flash');
@@ -490,9 +518,10 @@
   /* ---------- 버튼 ---------- */
   elMain.addEventListener('click', function () {
     unlockAudio();
-    if (S.status === 'idle' || S.status === 'paused') start();
+    if (S.status === 'idle') { if (view === 'timer') withTransition('kick', start); else start(); }
+    else if (S.status === 'paused') start();
     else if (S.status === 'running') pause();
-    else reset();
+    else endWithTransition();
   });
 
   elMiniMain.addEventListener('click', function () { elMain.click(); });
@@ -506,7 +535,7 @@
   }
   /* 큰 버튼과 전술판 상단 버튼은 같은 확인 단계를 공유한다 */
   function onEndClick() {
-    if (armTimer) { reset(); return; }
+    if (armTimer) { endWithTransition(); return; }
     elReset.classList.add('armed'); elReset.textContent = '한 번 더 누르면 경기 종료';
     elMiniReset.classList.add('armed'); elMiniReset.textContent = '종료 확인';
     armTimer = setTimeout(disarm, 3000);
@@ -842,6 +871,19 @@
 
   /* ---------- 화면 전환 ---------- */
   var view = 'timer';
+  /* 화면 전환 효과 (지원하는 브라우저에서만, 아니면 바로 바뀐다) */
+  function withTransition(kind, fn) {
+    var root = document.documentElement;
+    if (!document.startViewTransition) { fn(); return; }
+    root.dataset.vt = kind;
+    var t = document.startViewTransition(fn);
+    t.finished.then(function () { if (root.dataset.vt === kind) delete root.dataset.vt; }, function () {});
+  }
+  function switchView(v) {
+    if (v === view) return;
+    document.documentElement.dataset.dir = v === 'board' ? 'fwd' : 'back';
+    withTransition('tab', function () { setView(v); });
+  }
   function setView(v) {
     view = v; document.body.dataset.view = v;
     var tabs = document.querySelectorAll('#tabs .tab');
@@ -850,7 +892,7 @@
     if (v === 'board') layoutBoard();
   }
   $('tabs').addEventListener('click', function (e) {
-    var b = e.target.closest('button'); if (b) setView(b.dataset.view);
+    var b = e.target.closest('button'); if (b) switchView(b.dataset.view);
   });
   try { if (localStorage.getItem('fm.view') === 'board') setView('board'); } catch (e) {}
 
