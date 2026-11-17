@@ -128,8 +128,8 @@
     min-height: 72px; height: 15vh; border-radius: 20px;
     font-size: max(24px, 5.5vh); font-weight: 800;
   }
-  .btn-main { flex: 3; background: var(--green); color: #04130A; }
-  .btn-reset { flex: 1; background: var(--red-dark); border: 3px solid #A3231B; color: #fff; font-size: max(18px, 3.6vh); }
+  .btn-main { flex: 1 1 0; min-width: 0; border: 3px solid transparent; background: var(--green); color: #04130A; }
+  .btn-reset { flex: 1 1 0; min-width: 0; background: var(--red-dark); border: 3px solid #A3231B; color: #fff; }
   .btn-reset.armed { background: var(--red); border-color: var(--red); color: #fff; }
   body[data-status="idle"] .btn-reset, body[data-status="ended"] .btn-reset { display: none; }
   body[data-status="running"] .btn-main { background: var(--sky); color: #02202E; }
@@ -166,7 +166,6 @@
   body .tab.sel, body .opt.sel, body .tool.sel { font-weight: 700; }
 
   /* ---------- 타이머 좌우 −/+ ---------- */
-  .time { transition: transform 0.35s ease-out; }
   .time-row { display: flex; align-items: center; justify-content: center; gap: 3vw; }
   /* 누르는 영역은 그대로, 보이는 원만 10% 작게 (소프트 화이트) */
   .adj {
@@ -215,8 +214,12 @@
   .mini { display: flex; align-items: center; gap: 1.2vw; }
   .mini-status { font-size: max(14px, 2.4vh); font-weight: 800; color: var(--dim); }
   .mini-time { font-family: 'FMDigits', system-ui, sans-serif; font-weight: 700; font-size: max(26px, 5.2vh); line-height: 1; }
-  .mini-btn { min-width: 9vw; }
-  body[data-status="running"] .mini-btn { background: var(--sky); border-color: var(--sky); color: #02202E; }
+  .mini-btn { min-width: max(9vw, 8.2em); }  /* 라벨이 바뀌어도 시계 위치가 흔들리지 않게 */
+  .mini-reset { background-color: var(--red-dark); border-color: #A3231B; color: #fff; }
+  .mini-reset.armed { background-color: var(--red); border-color: var(--red); }
+  body[data-status="idle"] .mini-reset, body[data-status="ended"] .mini-reset { display: none; }
+  body[data-status="idle"] #miniMain, body[data-status="paused"] #miniMain { background-color: var(--green); border-color: var(--green); color: #04130A; }
+  body[data-status="running"] #miniMain { background: var(--sky); border-color: var(--sky); color: #02202E; }
   body.warn .mini-time, body.warn .mini-status { color: var(--yellow); }
   body.flash .mini-time, body.flash .mini-status { animation: flashYText 0.5s steps(1) 8; }
   body[data-status="ended"] .mini-time, body[data-status="ended"] .mini-status { color: var(--red); }
@@ -271,6 +274,7 @@
     <div class="mini">
       <span class="mini-status" id="miniStatus"></span>
       <span class="mini-time" id="miniTime">10:00</span>
+      <button class="topbtn mini-btn mini-reset" id="miniReset">경기 종료</button>
       <button class="topbtn mini-btn" id="miniMain">킥오프</button>
     </div>
     <button class="topbtn sndbtn" id="soundWarn">종료 전 알림음</button>
@@ -308,7 +312,7 @@
   </main>
 
   <footer class="controls">
-    <button class="btn btn-reset" id="reset">종료</button>
+    <button class="btn btn-reset" id="reset">경기 종료</button>
     <button class="btn btn-main" id="main">킥오프</button>
   </footer>
   </div>
@@ -351,7 +355,7 @@
 (function () {
   'use strict';
 
-  var APP_VERSION = '0.4.4';
+  var APP_VERSION = '0.4.9';
   var KEY = 'fm.timer.v1';
   var MIN_MS = 60 * 1000;
   var MAX_MS = 99 * 60 * 1000;
@@ -463,13 +467,13 @@
     else if (st === 'ended') label = '경기 종료';
 
     var mainLabel = '킥오프';
-    if (st === 'running') mainLabel = '일시정지';
-    else if (st === 'paused') mainLabel = '계속';
+    if (st === 'running') mainLabel = '쿨링 브레이크';
+    else if (st === 'paused') mainLabel = '경기 재개';
     else if (st === 'ended') mainLabel = '확인';
     setText(elMain, 'main', mainLabel);
     setText(elMiniTime, 'mtime', fmt(st === 'idle' ? S.durationMs : r));
     setText(elMiniMain, 'mmain', mainLabel);
-    setText(elMiniStatus, 'mstatus', st === 'idle' || (st === 'running' && !inWarn) ? '' : label);
+    setText(elMiniStatus, 'mstatus', st === 'idle' || st === 'paused' || (st === 'running' && !inWarn) ? '' : label);
 
     if (st === 'idle') {
       var key = S.durationMs + '|' + S.warnSec;
@@ -497,13 +501,19 @@
   var armTimer = null;
   function disarm() {
     clearTimeout(armTimer); armTimer = null;
-    elReset.classList.remove('armed'); elReset.textContent = '종료';
+    elReset.classList.remove('armed'); elReset.textContent = '경기 종료';
+    elMiniReset.classList.remove('armed'); elMiniReset.textContent = '경기 종료';
   }
-  elReset.addEventListener('click', function () {
+  /* 큰 버튼과 전술판 상단 버튼은 같은 확인 단계를 공유한다 */
+  function onEndClick() {
     if (armTimer) { reset(); return; }
-    elReset.classList.add('armed'); elReset.textContent = '한 번 더 누르면 종료';
+    elReset.classList.add('armed'); elReset.textContent = '한 번 더 누르면 경기 종료';
+    elMiniReset.classList.add('armed'); elMiniReset.textContent = '종료 확인';
     armTimer = setTimeout(disarm, 3000);
-  });
+  }
+  var elMiniReset = $('miniReset');
+  elReset.addEventListener('click', onEndClick);
+  elMiniReset.addEventListener('click', onEndClick);
 
   $('presets').addEventListener('click', function (e) {
     var b = e.target.closest('button'); if (!b || S.status !== 'idle') return;
@@ -852,23 +862,6 @@
 })();
 </script>
 <script>
-/* 7세그먼트 글꼴은 '1'이 칸 오른쪽에 그려져서 숫자가 오른쪽으로 쏠려 보인다.
-   실제로 그려진 부분(잉크) 기준으로 가운데에 오도록 살짝 옮긴다. */
-(function () {
-  var el = document.getElementById('time'), cv = document.createElement('canvas').getContext('2d');
-  function center() {
-    var cs = getComputedStyle(el);
-    cv.font = cs.fontWeight + ' ' + cs.fontSize + ' FMDigits';
-    var m = cv.measureText(el.textContent);
-    var inkMid = (m.actualBoundingBoxRight - m.actualBoundingBoxLeft) / 2;
-    var dx = m.width / 2 - inkMid;
-    el.style.transform = Math.abs(dx) < 1 ? '' : 'translateX(' + dx.toFixed(1) + 'px)';
-  }
-  new MutationObserver(center).observe(el, { childList: true, characterData: true, subtree: true });
-  new MutationObserver(center).observe(document.body, { attributes: true, attributeFilter: ['data-status'] });
-  addEventListener('resize', center);
-  document.fonts.ready.then(center); center();
-})();
 document.querySelectorAll('.adj').forEach(function (b) {
   b.addEventListener('click', function () { document.querySelector('#presets [data-step="' + b.dataset.for + '"]').click(); });
 });
