@@ -261,7 +261,8 @@
     font-size: max(15px, 2.4vh); font-weight: 400; border: 3px solid rgba(0,0,0,0.35); opacity: 0.45;
   }
   .chip.sel { opacity: 1; font-weight: 700; border-color: #fff; box-shadow: 0 0 0 3px rgba(255,255,255,0.25), 0 4px 0 rgba(0,0,0,0.55); }
-  .chip.other { opacity: 0.22; }
+  .chip.other { opacity: 1; background-image: none !important; box-shadow: none !important; border-color: rgba(255,255,255,0.12); color: rgba(255,255,255,0.7) !important; display: flex; align-items: center; justify-content: center; }
+  .swap-ico { width: 1.4em; height: 1.4em; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
   .bar-mid { flex: none; display: flex; gap: 0.6vw; }
   .seg { display: flex; gap: 0.4vw; }
   .bar-mid .tool { flex: none; padding: 0 1.2vw; height: 6.4vh; white-space: nowrap; }
@@ -304,13 +305,16 @@
   .swatches { display: flex; gap: 0.5vw; }
   .sw { flex: 1; min-width: 0; height: max(56px, 6vh); border-radius: 12px; border: 2px solid rgba(255,255,255,0.45); }
   .sw.sel { border: 4px solid #fff; box-shadow: 0 0 0 3px rgba(255,255,255,0.35), inset 0 2px 0 rgba(255,255,255,0.35), 0 4px 0 rgba(0,0,0,0.55) !important; }
-  .sw:disabled { opacity: 0.15; }
+  .sw { display: flex; align-items: center; justify-content: center; }
+  .sw.taken { background-image: none !important; box-shadow: none !important; border-color: rgba(255,255,255,0.1); pointer-events: none; }
+  .sw-ico { width: 46%; max-width: 30px; height: auto; aspect-ratio: 1; fill: none; stroke: currentColor; stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; }
+  .sw.sel .sw-ico { stroke-width: 3.2; }
   .members { flex: 1; min-height: 0; overflow-y: auto; display: flex; flex-wrap: wrap; align-content: flex-start; gap: 0.7vw; }
   .mchip {
     min-height: 56px; height: 7vh; padding: 0 1.4vw; border-radius: 999px;
-    font-size: max(18px, 3vh); background: #232B26; border: 2px solid #3A473E;
+    font-size: max(18px, 3vh); color: #111; border: 2px solid rgba(255,255,255,0.65);
   }
-  .mchip.sel { background: var(--text); color: var(--bg); border-color: var(--text); font-weight: 700; }
+  .mchip.sel { border: 3px solid #fff; font-weight: 700; box-shadow: 0 0 0 3px rgba(255,255,255,0.25), inset 0 -5px 0 rgba(0,0,0,0.3), 0 4px 0 rgba(0,0,0,0.55) !important; }
   .mdel { min-height: 56px; height: 7vh; padding: 0 1.4vw; border-radius: 999px; font-size: max(16px, 2.6vh); background: var(--red); color: #fff; }
   .moveto { width: 100%; min-height: 56px; height: 7vh; border-radius: 14px; font-size: max(17px, 2.8vh); background: rgba(255,255,255,0.06); border: 3px dashed #fff; }
   .tempty { color: #6B7A70; font-size: max(15px, 2.4vh); padding: 0.6vh 0.2vw; }
@@ -478,7 +482,7 @@
 (function () {
   'use strict';
 
-  var APP_VERSION = '0.7.0';
+  var APP_VERSION = '0.7.1';
   var KEY = 'fm.timer.v1';
   var MIN_MS = 60 * 1000;
   var MAX_MS = 99 * 60 * 1000;
@@ -774,12 +778,12 @@
   var TKEY = 'fm.teams.v1';
   /* 조끼 색: 배경 · 글자 · 테두리 */
   var COLORS = {
-    red:    { name: '빨강', bg: '#E8261C', fg: '#FFFFFF', bd: '#FFFFFF' },
-    blue:   { name: '파랑', bg: '#1456E0', fg: '#FFFFFF', bd: '#FFFFFF' },
-    yellow: { name: '노랑', bg: '#FFD60A', fg: '#111111', bd: '#FFFFFF' },
-    green:  { name: '초록', bg: '#2BD86A', fg: '#111111', bd: '#FFFFFF' },
-    white:  { name: '하양', bg: '#F4F4F4', fg: '#111111', bd: '#111111' },
-    black:  { name: '검정', bg: '#1A1A1A', fg: '#FFFFFF', bd: '#FFFFFF' }
+    red:    { name: '빨강', bg: '#E8261C', fg: '#FFFFFF', bd: '#FFFFFF', tint: '#F8C6C2', pbg: '#E8261C', pfg: '#FFFFFF' },
+    blue:   { name: '파랑', bg: '#1456E0', fg: '#FFFFFF', bd: '#FFFFFF', tint: '#C3D4F7', pbg: '#1456E0', pfg: '#FFFFFF' },
+    yellow: { name: '노랑', bg: '#FFD60A', fg: '#111111', bd: '#FFFFFF', tint: '#FFF2A8', pbg: '#FFD60A', pfg: '#111111' },
+    green:  { name: '초록', bg: '#0A5C2B', fg: '#FFFFFF', bd: '#FFFFFF', tint: '#BCD9C6', pbg: '#0A5C2B', pfg: '#FFFFFF' },
+    white:  { name: '하양', bg: '#F4F4F4', fg: '#111111', bd: '#111111', tint: '#F4F4F4', pbg: '#1A1A1A', pfg: '#FFFFFF' },
+    black:  { name: '검정', bg: '#1A1A1A', fg: '#FFFFFF', bd: '#FFFFFF', tint: '#1A1A1A', tfg: '#FFFFFF', pbg: '#F4F4F4', pfg: '#111111' }   /* 하양·검정은 눌렀을 때 서로 반전 */
   };
   var CORDER = ['red', 'blue', 'yellow', 'green', 'white', 'black'];
   var MAX_TEAMS = 4;
@@ -958,6 +962,15 @@
   }
 
   /* 좌우 팀 선택 + 5:5 / 6:6 */
+  var CHECK_ICO = '<svg class="sw-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5 10 17.5 19 7"/></svg>';
+  var LOCK_ICO = '<svg class="sw-ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>';
+  var SWAP_ICO = '<svg class="swap-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4 3 8l4 4M3 8h14M17 20l4-4-4-4M21 16H7"/></svg>';
+  /* 색 죽이기: 어두운 회색 쪽으로 70% 섞는다 */
+  function mute(hex) {
+    var n = parseInt(hex.slice(1), 16), g = [0x2A, 0x30, 0x2C];
+    var rgb = [(n >> 16) & 255, (n >> 8) & 255, n & 255].map(function (v, i) { return Math.round(v * 0.3 + g[i] * 0.7); });
+    return 'rgb(' + rgb.join(',') + ')';
+  }
   function renderPickers() {
     ['left', 'right'].forEach(function (side) {
       var mine = side === 'left' ? T.left : T.right, other = side === 'left' ? T.right : T.left;
@@ -965,7 +978,8 @@
       T.teams.forEach(function (t) {
         var c = COLORS[t.color];
         h += '<button class="chip' + (t.id === mine ? ' sel' : t.id === other ? ' other' : '') + '" data-side="' + side + '" data-team="' + t.id +
-          '" style="background-color:' + c.bg + ';color:' + c.fg + '">' + c.name + '</button>';
+          '" style="background-color:' + (t.id === other ? mute(c.bg) : c.bg) + ';color:' + c.fg + '">' +
+          (t.id === other ? SWAP_ICO : c.name) + '</button>';
       });
       $(side === 'left' ? 'pickL' : 'pickR').innerHTML = h;
     });
@@ -1212,15 +1226,18 @@
       h += '<div class="swatches">';
       CORDER.forEach(function (k) {
         var usedBy = T.teams.some(function (o) { return o !== t && o.color === k; });
-        h += '<button class="sw' + (t.color === k ? ' sel' : '') + '" data-team="' + t.id + '" data-color="' + k + '"' + (usedBy ? ' disabled' : '') +
-          ' style="background-color:' + COLORS[k].bg + '" aria-label="' + COLORS[k].name + '"></button>';
+        var mineC = t.color === k, ck = COLORS[k];
+        h += '<button class="sw' + (mineC ? ' sel' : '') + (usedBy ? ' taken' : '') + '" data-team="' + t.id + '" data-color="' + k + '"' + (usedBy ? ' disabled' : '') +
+          ' style="background-color:' + (usedBy ? mute(ck.bg) : ck.bg) + ';color:' + (usedBy ? 'rgba(255,255,255,0.7)' : ck.fg) + '" aria-label="' + ck.name + '">' +
+          (mineC ? CHECK_ICO : usedBy ? LOCK_ICO : '') + '</button>';
       });
       h += '</div><div class="thead"><span class="tname">' + teamName(t) + '</span><span class="spacer"></span><span class="tcount">' + t.members.length + '명</span></div>';
       h += '<div class="members">';
       if (sel && sel.team !== t) h += '<button class="moveto" data-moveto="' + t.id + '">' + esc(sel.team.members[sel.idx].name) + ' → ' + teamName(t) + '으로 이적</button>';
       if (!t.members.length) h += '<div class="tempty">아직 아무도 없어요</div>';
       t.members.forEach(function (m) {
-        h += '<button class="mchip' + (m.id === selM ? ' sel' : '') + '" data-member="' + m.id + '">' + esc(m.name) + '</button>';
+        var on = m.id === selM;
+        h += '<button class="mchip' + (on ? ' sel' : '') + '" data-member="' + m.id + '" style="background-color:' + (on ? c.pbg : c.tint) + ';color:' + (on ? c.pfg : (c.tfg || '#111')) + '">' + esc(m.name) + '</button>';
         if (m.id === selM) h += '<button class="mdel" data-mdel="' + m.id + '">방출</button>';
       });
       h += '</div>';
