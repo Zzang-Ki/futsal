@@ -60,7 +60,6 @@
   .sndbtn { background: #1B3352; border-color: #2E5380; color: #CFE2FF; }
   .sndbtn:active { background: #2E5380; }
   .version { font-size: max(13px, 2vh); color: var(--dim); font-variant-numeric: tabular-nums; text-align: right; line-height: 1.25; }
-  .version .credit { display: block; font-size: max(11px, 1.5vh); opacity: 0.8; }
 
   /* ---------- 타이머 본문 ---------- */
   .stage {
@@ -215,7 +214,6 @@
 
   /* ---------- 상단 작은 타이머 (전술판에서 표시) ---------- */
   .mini { display: flex; align-items: center; gap: 0.8vw; }
-  .mini-status { font-size: max(14px, 2.4vh); font-weight: 800; color: var(--dim); }
   .mini-time { font-family: 'FMDigits', system-ui, sans-serif; font-weight: 700; font-size: max(26px, 5.2vh); line-height: 1; }
   .mini-btn { min-width: max(9vw, 8.2em); }  /* 라벨이 바뀌어도 시계 위치가 흔들리지 않게 */
   .mini-reset { background-color: var(--red-dark); border-color: #A3231B; color: #fff; }
@@ -223,9 +221,9 @@
   body[data-status="idle"] .mini-reset, body[data-status="ended"] .mini-reset { display: none; }
   body[data-status="idle"] #miniMain, body[data-status="paused"] #miniMain { background-color: var(--green); border-color: var(--green); color: #04130A; }
   body[data-status="running"] #miniMain { background: var(--sky); border-color: var(--sky); color: #02202E; }
-  body.warn .mini-time, body.warn .mini-status { color: var(--yellow); }
-  body.flash .mini-time, body.flash .mini-status { animation: flashYText 0.5s steps(1) 8; }
-  body[data-status="ended"] .mini-time, body[data-status="ended"] .mini-status { color: var(--red); }
+  body.warn .mini-time { color: var(--yellow); }
+  body.flash .mini-time { animation: flashYText 0.5s steps(1) 8; }
+  body[data-status="ended"] .mini-time { color: var(--red); }
   body[data-status="paused"] .mini-time { animation: blink 1.2s steps(1) infinite; }
 
   /* ---------- 전술판 ---------- */
@@ -412,7 +410,7 @@
   .glog .gmin { color: var(--yellow); margin-left: 0.4em; }
   .glog .gas { color: var(--dim); font-size: 0.9em; }
   .glog .more { color: var(--dim); }
-  .tab, .version, .mini-status, .mini-btn { flex: none; white-space: nowrap; }
+  .tab, .version, .mini-btn { flex: none; white-space: nowrap; }
 
   /* 골 기록 창 */
   .sheet-dim { position: fixed; inset: 0; z-index: 2000; background: rgba(0,0,0,0.72); display: flex; align-items: center; justify-content: center; }
@@ -504,7 +502,6 @@
     </nav>
     <div class="spacer"></div>
     <div class="mini">
-      <span class="mini-status" id="miniStatus"></span>
       <span class="mini-time" id="miniTime">10:00</span>
       <button class="topbtn mini-btn mini-reset" id="miniReset">경기 종료</button>
       <button class="topbtn mini-btn" id="miniMain">킥오프</button>
@@ -638,7 +635,7 @@
 (function () {
   'use strict';
 
-  var APP_VERSION = '0.8.11';
+  var APP_VERSION = '0.8.12';
   var KEY = 'fm.timer.v1';
   var MIN_MS = 60 * 1000;
   var MAX_MS = 99 * 60 * 1000;
@@ -646,9 +643,13 @@
   var $ = function (id) { return document.getElementById(id); };
   var elTime = $('time');
   var elMain = $('main'), elReset = $('reset');
-  var elMiniTime = $('miniTime'), elMiniMain = $('miniMain'), elMiniStatus = $('miniStatus'), elShTime = $('shTime');
+  var elMiniTime = $('miniTime'), elMiniMain = $('miniMain'), elShTime = $('shTime');
 
-  $('version').innerHTML = 'v' + APP_VERSION + '<span class="credit">음성: typecast.ai</span>';
+  $('version').textContent = 'v' + APP_VERSION;
+  /* 음성 출처(타입캐스트 무료 플랜은 출처 표기 필요): 화면에는 두지 않고 버전 번호를 누르면 보여준다 */
+  $('version').addEventListener('click', function () {
+    showToast('안내 음성은 인공지능 가상 연기자 서비스, 타입캐스트(typecast.ai)로 제작되었습니다.', null, 6000);
+  });
 
   /* 로고: Full_Logo.png → .svg → .jpg 순으로 찾고, 없으면 글자로 표시한다 */
   (function () {
@@ -759,7 +760,6 @@
     setText(elMiniTime, 'mtime', fmt(st === 'idle' ? S.durationMs : r));
     setText(elMiniMain, 'mmain', mainLabel);
     setText(elShTime, 'shtime', fmt(st === 'idle' ? 0 : S.durationMs - Math.max(0, r)).replace(/^0(?=\d:)/, '') + '\'');   /* 03:12 → 3:12' */
-    setText(elMiniStatus, 'mstatus', st === 'idle' || st === 'paused' || (st === 'running' && !inWarn) ? '' : label);
 
     if (st === 'idle') {
       var key = S.durationMs + '|' + S.warnSec + '|' + S.scoreOn;
@@ -1615,11 +1615,11 @@
 
   /* ---------- 알림 + 되돌리기 ---------- */
   var toastTimer = null, toastGoal = null;
-  function showToast(msg, goalId) {
+  function showToast(msg, goalId, ms) {
     $('toastMsg').textContent = msg; toastGoal = goalId;
     $('toastUndo').hidden = !goalId;
     $('toast').hidden = false;
-    clearTimeout(toastTimer); toastTimer = setTimeout(hideToast, goalId ? 10000 : 2500);
+    clearTimeout(toastTimer); toastTimer = setTimeout(hideToast, ms || (goalId ? 10000 : 2500));
   }
   function hideToast() { clearTimeout(toastTimer); $('toast').hidden = true; toastGoal = null; }
   $('toastUndo').addEventListener('click', function () {
