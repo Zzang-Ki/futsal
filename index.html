@@ -38,11 +38,12 @@
     padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
   }
   button { font: inherit; color: inherit; border: 0; cursor: pointer; touch-action: manipulation; }
+  [hidden] { display: none !important; }
 
   /* ---------- 상단 바 ---------- */
   .topbar {
     flex: none; height: max(56px, 8vh);
-    display: flex; align-items: center; gap: 2vw;
+    display: flex; align-items: center; gap: 1.6vw;
     padding: 0 2.5vw;
     border-bottom: 2px solid var(--line);
   }
@@ -78,6 +79,7 @@
     text-shadow: 0 0 0.05em currentColor, 0 0.03em 0.08em rgba(0,0,0,0.8);
   }
   body:not([data-status="idle"]) .time { font-size: min(23vw, 62vh); }
+  body.scoring:not([data-status="idle"]) .time { font-size: var(--clock); }
 
   /* ---------- 타이머 배경 이미지 (Timer_BG.png 또는 Timer_BG.jpg, 없으면 검정) ---------- */
   #viewTimer {
@@ -212,7 +214,7 @@
   .tab.sel { background: var(--text); color: var(--bg); border-color: var(--text); }
 
   /* ---------- 상단 작은 타이머 (전술판에서 표시) ---------- */
-  .mini { display: flex; align-items: center; gap: 1.2vw; }
+  .mini { display: flex; align-items: center; gap: 0.8vw; }
   .mini-status { font-size: max(14px, 2.4vh); font-weight: 800; color: var(--dim); }
   .mini-time { font-family: 'FMDigits', system-ui, sans-serif; font-weight: 700; font-size: max(26px, 5.2vh); line-height: 1; }
   .mini-btn { min-width: max(9vw, 8.2em); }  /* 라벨이 바뀌어도 시계 위치가 흔들리지 않게 */
@@ -335,6 +337,141 @@
   .tool.sel i { border-color: #000; }
   .tool:disabled { opacity: 0.4; }
 
+  /* ---------- 스코어 ---------- */
+  /* 킥오프 전: 이번 경기 두 팀 고르기 (전술판 좌우 팀과 같은 설정) */
+  .matchup { display: none; align-items: center; justify-content: center; gap: 1vw; margin-bottom: 1.8vh; }
+  body[data-status="idle"] .matchup { display: flex; }
+  .matchup .side-pick { flex: none; }
+  .matchup .chip { flex: none; width: 6.2em; }
+  /* 꺼짐: 좌우 팀 선택은 없애고 스위치만 가운데에 남긴다 */
+  body:not(.score-on) #mpL, body:not(.score-on) #mpR { display: none; }
+  /* 가운데(VS 자리): 검정 박스 안에 '스코어 기록' + 스위치 (ON/OFF 글자는 스위치 안) */
+  .stoggle {
+    flex: none; display: flex; align-items: center; gap: 0.9vw; margin: 0 1.2vw;
+    min-height: 56px; height: 6.4vh; padding: 0 0.7vw 0 1.4vw;
+    background: #000; border: 2px solid rgba(255,255,255,0.22); border-radius: 999px;
+    font-size: max(16px, 2.6vh); color: #E6EDE8;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+  }
+  .st-sw {
+    position: relative; flex: none; width: 3.9em; height: 1.75em; border-radius: 999px;
+    background: #3A473E; box-shadow: inset 0 2px 4px rgba(0,0,0,0.45); transition: background-color 0.18s;
+  }
+  .st-sw i {
+    position: absolute; top: 0.18em; left: 0.18em; width: 1.39em; height: 1.39em; border-radius: 50%;
+    background: #fff; box-shadow: 0 2px 4px rgba(0,0,0,0.45); transition: left 0.18s;
+  }
+  .st-text {
+    position: absolute; top: 0; bottom: 0; left: 1.6em; right: 0.2em;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.72em; font-weight: 700; letter-spacing: 0.02em; color: #A9B8AE;
+  }
+  .stoggle[aria-pressed="true"] .st-sw { background: var(--green); }
+  .stoggle[aria-pressed="true"] .st-sw i { left: calc(100% - 1.57em); }
+  .stoggle[aria-pressed="true"] .st-text { left: 0.2em; right: 1.6em; color: #04130A; }
+  /* ON: 팀 선택 줄 전체를 박스로 묶는다 (아래 설정 박스와 같은 반투명 판, 스위치의 검정과 구분) / OFF: 박스 없이 스위치만 */
+  body.score-on .matchup {
+    width: max-content; margin-left: auto; margin-right: auto; padding: 1.2vh 1.2vw;
+    background: rgba(28,36,31,0.86); border: 2px solid rgba(255,255,255,0.16); border-radius: 22px;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.08);
+  }
+  body:not(.score-on) .stoggle { margin: 0; }
+  /* 경기 중: 시계 양옆 팀 점수판 (누르면 골 기록) */
+  body.scoring:not([data-status="idle"]) .time-row { gap: 2vw; margin-top: 19vh; }   /* 위에 점수판 자리 */
+  /* --clock: 경기 중 시계 글자 크기. 숫자 모양 높이가 글자 크기와 거의 같아서(0.995배) 위·아래 끝을 맞춘다 */
+  body { --clock: min(16.5vw, 46vh); }
+  /* 골 기록 버튼 = 시계 숫자와 같은 높이, 점수판은 그 위에 따로 */
+  .scol { position: relative; flex: none; display: none; width: 17vw; height: calc(var(--clock) * 0.995); }
+  body.scoring:not([data-status="idle"]) .scol { display: flex; }
+  .score {
+    position: absolute; left: 0; right: 0; bottom: calc(100% + 1.8vh); height: 17vh;
+    border-radius: 20px; border: 5px solid #fff; background-color: #050505; color: #fff;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1.2vh;
+  }
+  .score .sname { font-size: max(17px, 3vh); font-weight: 700; line-height: 1; }
+  .score .snum { font-family: 'FMDigits', system-ui, sans-serif; font-weight: 700; font-size: min(6.5vw, 10vh); line-height: 1; color: var(--yellow); text-shadow: 0 0 0.08em rgba(255,214,10,0.55); }
+  .goalbtn {
+    flex: 1; min-height: 56px; border-radius: 22px; border: 4px solid rgba(255,255,255,0.92);
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1.4vh;
+    font-size: max(24px, 4.8vh); font-weight: 700; line-height: 1;
+  }
+  .goalbtn .gb-plus { font-size: 1.6em; line-height: 0.8; }
+  /* 점수판 아래 득점 기록 */
+  .scol .glog { position: absolute; left: -1vw; right: -1vw; top: calc(100% + 2vh); margin: 0; }
+  .score.bump .snum { animation: bump 0.6s ease-out; }
+  @keyframes bump { 0% { transform: scale(1); } 30% { transform: scale(1.35); } 100% { transform: scale(1); } }
+  /* 점수판 아래 득점 기록 */
+  .glog { margin: 0 -1vw; display: flex; flex-direction: column; align-items: center; gap: 0.8vh; }
+  .glog div {
+    max-width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    font-size: max(15px, 2.4vh); line-height: 1.25; padding: 0.5vh 1vw; border-radius: 999px; background: rgba(0,0,0,0.62);
+  }
+  .glog .gmin { color: var(--yellow); margin-left: 0.4em; }
+  .glog .gas { color: var(--dim); font-size: 0.9em; }
+  .glog .more { color: var(--dim); }
+  /* 상단 작은 스코어 (다른 화면에서) */
+  .mini-score { display: none; align-items: center; gap: 0.6vw; font-size: max(15px, 2.4vh); }
+  body.scoring:not([data-status="idle"]) .mini-score { display: flex; }
+  body.scoring[data-status="running"] .mini-status { display: none; }   /* 자리가 모자라 '종료 N분 전' 글자는 빼고 노란 시계로 대신한다 */
+  .mini-score b {
+    min-width: 1.5em; padding: 0.6vh 0.5vw; border-radius: 10px; border: 2px solid rgba(255,255,255,0.75); text-align: center;
+    font-family: 'FMDigits', system-ui, sans-serif; font-weight: 700; font-size: max(20px, 3.6vh); line-height: 1;
+  }
+  .mini-score span { font-weight: 700; font-size: max(18px, 3vh); color: var(--dim); }
+  .tab, .version, .mini-status, .mini-btn { flex: none; white-space: nowrap; }
+
+  /* 골 기록 창 */
+  .sheet-dim { position: fixed; inset: 0; z-index: 2000; background: rgba(0,0,0,0.72); display: flex; align-items: center; justify-content: center; }
+  .sheet-dim[hidden] { display: none; }
+  .sheet {
+    width: min(78vw, 1200px); max-height: 92vh; overflow: hidden; display: flex; flex-direction: column;
+    background: #121714; border: 2px solid var(--line); border-top-width: 14px; border-radius: 24px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+  }
+  .sh-head { flex: none; display: flex; align-items: center; gap: 1vw; padding: 2vh 2vw 1vh; }
+  .sh-title { font-size: max(24px, 4.6vh); font-weight: 700; }
+  .sh-time { font-family: 'FMDigits', system-ui, sans-serif; font-weight: 700; font-size: max(22px, 4vh); color: var(--dim); }
+  .sh-body { flex: 1; min-height: 0; overflow-y: auto; padding: 0 2vw; display: flex; flex-direction: column; gap: 2vh; }
+  .sh-label { display: flex; align-items: center; gap: 0.6vw; font-size: max(22px, 3.8vh); font-weight: 700; color: #FFFFFF; margin-bottom: 1.4vh; }
+  .sh-label::before { content: ''; width: 6px; height: 1.1em; border-radius: 3px; background: var(--yellow); }
+  .sh-chips { display: flex; flex-wrap: wrap; gap: 0.8vw; }
+  .sh-chips .mchip { min-width: 5.2em; }
+  .sh-chips .mchip.plain { background-color: #26302A; color: #E6EDE8; border-color: #4A584F; }
+  .sh-chips .mchip.plain.sel { background-color: #fff; color: #111; }
+  .sh-chips .mchip:disabled { opacity: 0.25; }
+  .sh-hint { font-size: max(15px, 2.4vh); color: #6B7A70; }
+  .sh-foot { flex: none; display: flex; gap: 0.8vw; padding: 2.2vh 2vw 2.4vh; }
+  .sh-foot .tool { flex: none; padding: 0 2.2vw; }
+  .sh-foot .spacer { flex: 1; }
+  .sh-foot .sh-undo { background-color: #2A1715; border-color: #5A2520; color: #FFB4AE; }
+  .sh-foot .sh-undo.armed { background-color: var(--red); border-color: var(--red); color: #fff; }
+  .sh-foot .sh-ok { min-width: 14vw; background-color: var(--green); border-color: var(--green); color: #04130A; font-weight: 700; }
+  .sh-foot .sh-ok:disabled { opacity: 0.35; }
+
+  /* 골 기록 직후 알림 + 되돌리기 */
+  .toast {
+    position: fixed; left: 50%; bottom: 21vh; z-index: 1500; transform: translateX(-50%);
+    display: flex; align-items: center; gap: 1.4vw; padding: 1.2vh 1.2vw 1.2vh 2vw;
+    background: rgba(10,13,11,0.94); border: 2px solid var(--yellow); border-radius: 18px; box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+    font-size: max(18px, 3vh); white-space: nowrap;
+  }
+  .toast[hidden] { display: none; }
+  .toast .tool { flex: none; height: 6.4vh; padding: 0 1.6vw; }
+
+  /* 점수판은 누르는 곳이 아니라 평평한 판, 골 기록 버튼만 입체 */
+  .score {
+    background-image: linear-gradient(180deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0) 45%);
+    box-shadow: 0 10px 28px rgba(0,0,0,0.55);
+  }
+  .goalbtn {
+    background-image: linear-gradient(180deg, rgba(255,255,255,0.22) 0%, rgba(255,255,255,0.04) 48%, rgba(0,0,0,0.12) 100%) !important;
+    box-shadow: inset 0 2px 0 rgba(255,255,255,0.32), inset 0 -6px 0 rgba(0,0,0,0.26), 0 5px 0 rgba(0,0,0,0.55), 0 8px 14px rgba(0,0,0,0.45);
+    transition: transform 0.06s ease-out, box-shadow 0.06s ease-out, filter 0.06s;
+  }
+  .goalbtn:active { transform: translateY(4px); filter: brightness(0.9); box-shadow: inset 0 2px 0 rgba(255,255,255,0.18), inset 0 -2px 0 rgba(0,0,0,0.3), 0 1px 0 rgba(0,0,0,0.55), 0 2px 4px rgba(0,0,0,0.4); }
+  .scol.a { view-transition-name: score-a; } .scol.b { view-transition-name: score-b; }
+  .matchup { view-transition-name: matchup; }
+
   /* ---------- 전환 효과 ---------- */
   .topbar { view-transition-name: topbar; }
   #viewTimer, #viewBoard, #viewTeam { view-transition-name: content; }
@@ -375,6 +512,7 @@
     <div class="spacer"></div>
     <div class="mini">
       <span class="mini-status" id="miniStatus"></span>
+      <span class="mini-score" id="miniScore"></span>
       <span class="mini-time" id="miniTime">10:00</span>
       <button class="topbtn mini-btn mini-reset" id="miniReset">경기 종료</button>
       <button class="topbtn mini-btn" id="miniMain">킥오프</button>
@@ -387,10 +525,17 @@
 
   <div class="view" id="viewTimer">
   <main class="stage">
+    <div class="matchup" id="matchup">
+      <div class="side-pick" id="mpL"></div>
+      <button class="stoggle" id="scoreToggle" aria-pressed="true"><span class="st-label">스코어 기록</span><span class="st-sw"><span class="st-text" id="stState">ON</span><i></i></span></button>
+      <div class="side-pick right" id="mpR"></div>
+    </div>
     <div class="time-row">
+      <div class="scol a"><div class="score" id="scA"></div><button class="goalbtn" id="gbA"><span class="gb-plus">+</span>골 기록</button><div class="glog" id="glogA"></div></div>
       <button class="adj adj-minus" data-for="-60000" aria-label="1분 줄이기"><svg viewBox="0 0 24 24"><path d="M5 12h14"/></svg></button>
       <div class="time" id="time">10:00</div>
       <button class="adj adj-plus" data-for="60000" aria-label="1분 늘리기"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button>
+      <div class="scol b"><div class="score" id="scB"></div><button class="goalbtn" id="gbB"><span class="gb-plus">+</span>골 기록</button><div class="glog" id="glogB"></div></div>
     </div>
 
     <section class="settings">
@@ -480,11 +625,29 @@
     </div>
   </div>
 
+  <div class="sheet-dim" id="goalSheet" hidden>
+    <div class="sheet" id="sheet">
+      <div class="sh-head"><span class="sh-title" id="shTitle">골!</span><span class="spacer"></span><span class="sh-time" id="shTime"></span></div>
+      <div class="sh-body">
+        <div><div class="sh-label">득점</div><div class="sh-chips" id="shScorer"></div></div>
+        <div id="shAssistBox"><div class="sh-label">어시스트</div><div class="sh-chips" id="shAssist"></div></div>
+        <div class="sh-hint" id="shHint"></div>
+      </div>
+      <div class="sh-foot">
+        <button class="tool sh-undo" id="shUndo">마지막 골 취소</button>
+        <span class="spacer"></span>
+        <button class="tool" id="shCancel">취소</button>
+        <button class="tool sh-ok" id="shOk" disabled>골 기록</button>
+      </div>
+    </div>
+  </div>
+  <div class="toast" id="toast" hidden><span id="toastMsg"></span><button class="tool" id="toastUndo">되돌리기</button></div>
+
 <script>
 (function () {
   'use strict';
 
-  var APP_VERSION = '0.7.5';
+  var APP_VERSION = '0.8.0';
   var KEY = 'fm.timer.v1';
   var MIN_MS = 60 * 1000;
   var MAX_MS = 99 * 60 * 1000;
@@ -492,7 +655,7 @@
   var $ = function (id) { return document.getElementById(id); };
   var elTime = $('time');
   var elMain = $('main'), elReset = $('reset');
-  var elMiniTime = $('miniTime'), elMiniMain = $('miniMain'), elMiniStatus = $('miniStatus');
+  var elMiniTime = $('miniTime'), elMiniMain = $('miniMain'), elMiniStatus = $('miniStatus'), elShTime = $('shTime');
 
   $('version').innerHTML = 'v' + APP_VERSION + '<span class="credit">음성: typecast.ai</span>';
 
@@ -507,7 +670,7 @@
   })();
 
   /* ---------- 상태 ---------- */
-  var DEFAULTS = { durationMs: 10 * 60 * 1000, warnSec: 60, status: 'idle', endAt: 0, remainingMs: 10 * 60 * 1000, warned: false };
+  var DEFAULTS = { durationMs: 10 * 60 * 1000, warnSec: 60, status: 'idle', endAt: 0, remainingMs: 10 * 60 * 1000, warned: false, scoreOn: true };
   var S = load();
   if ([0, 60, 180].indexOf(S.warnSec) < 0) S.warnSec = 60;   /* 없어진 알림 옵션은 1분 전으로 */
 
@@ -530,7 +693,7 @@
 
   /* ---------- 동작 ---------- */
   function start() {
-    if (S.status === 'idle') { S.remainingMs = S.durationMs; S.warned = false; }
+    if (S.status === 'idle') { S.remainingMs = S.durationMs; S.warned = false; newMatch(); }
     if (S.remainingMs <= S.warnSec * 1000) S.warned = true;
     S.endAt = Date.now() + S.remainingMs;
     S.status = 'running';
@@ -543,6 +706,7 @@
   }
   function endWithTransition() { if (view === 'timer') withTransition('kick', reset); else reset(); }
   function reset() {
+    endMatch();
     S.status = 'idle'; S.remainingMs = S.durationMs; S.warned = false; S.endAt = 0;
     stopSounds(); document.body.classList.remove('flash');
     save(); lockOff(); disarm(); render();
@@ -603,14 +767,18 @@
     setText(elMain, 'main', mainLabel);
     setText(elMiniTime, 'mtime', fmt(st === 'idle' ? S.durationMs : r));
     setText(elMiniMain, 'mmain', mainLabel);
+    setText(elShTime, 'shtime', fmt(st === 'idle' ? S.durationMs : r));
     setText(elMiniStatus, 'mstatus', st === 'idle' || st === 'paused' || (st === 'running' && !inWarn) ? '' : label);
 
     if (st === 'idle') {
-      var key = S.durationMs + '|' + S.warnSec;
+      var key = S.durationMs + '|' + S.warnSec + '|' + S.scoreOn;
       if (last.sel !== key) {
         last.sel = key;
         var i, list = document.querySelectorAll('#presets [data-min]');
         for (i = 0; i < list.length; i++) list[i].classList.toggle('sel', Number(list[i].dataset.min) * 60000 === S.durationMs);
+        document.body.classList.toggle('score-on', !!S.scoreOn);
+        $('scoreToggle').setAttribute('aria-pressed', S.scoreOn ? 'true' : 'false');
+        $('stState').textContent = S.scoreOn ? 'ON' : 'OFF';
         list = document.querySelectorAll('#warns [data-warn]');
         for (i = 0; i < list.length; i++) list[i].classList.toggle('sel', Number(list[i].dataset.warn) === S.warnSec);
       }
@@ -655,6 +823,11 @@
     S.remainingMs = S.durationMs;
     save(); render();
   });
+  $('scoreToggle').addEventListener('click', function () {
+    if (S.status !== 'idle') return;
+    S.scoreOn = !S.scoreOn;
+    save(); render();
+  });
   $('warns').addEventListener('click', function (e) {
     var b = e.target.closest('button'); if (!b) return;
     S.warnSec = Number(b.dataset.warn);
@@ -667,6 +840,7 @@
   /* PC 확인용: 스페이스바로 시작/일시정지 */
   document.addEventListener('keydown', function (e) {
     if (e.target && e.target.tagName === 'INPUT') return;   /* 이름 입력 중에는 무시 */
+    if (!$('goalSheet').hidden) { if (e.key === 'Escape') closeSheet(); return; }
     if (e.code === 'Space') { e.preventDefault(); elMain.click(); }
   });
 
@@ -947,6 +1121,17 @@
     var rgb = [(n >> 16) & 255, (n >> 8) & 255, n & 255].map(function (v, i) { return Math.round(v * 0.3 + g[i] * 0.7); });
     return 'rgb(' + rgb.join(',') + ')';
   }
+  /* 좌우(= 이번 경기) 팀 바꾸기: 전술판과 타이머가 같이 쓴다 */
+  function pickSide(side, id) {
+    var mine = side === 'left' ? T.left : T.right, other = side === 'left' ? T.right : T.left;
+    if (id === mine) return;
+    if (id === other) { var tmp = T.left; T.left = T.right; T.right = tmp; }
+    else if (side === 'left') T.left = id; else T.right = id;
+    saveTeams(); renderBoard();
+  }
+  $('matchup').addEventListener('click', function (e) {
+    var b = e.target.closest('button'); if (b && b.dataset.team && S.status === 'idle') pickSide(b.dataset.side, b.dataset.team);
+  });
   function renderPickers() {
     ['left', 'right'].forEach(function (side) {
       var mine = side === 'left' ? T.left : T.right, other = side === 'left' ? T.right : T.left;
@@ -958,20 +1143,15 @@
           (t.id === other ? SWAP_ICO : c.name) + '</button>';
       });
       $(side === 'left' ? 'pickL' : 'pickR').innerHTML = h;
+      $(side === 'left' ? 'mpL' : 'mpR').innerHTML = h;
     });
     var segs = document.querySelectorAll('#sizeSeg [data-size]');
     for (var i = 0; i < segs.length; i++) segs[i].classList.toggle('sel', Number(segs[i].dataset.size) === T.size);
   }
   elBar.addEventListener('click', function (e) {
     var b = e.target.closest('button'); if (!b) return;
-    if (b.dataset.team) {
-      var side = b.dataset.side, id = b.dataset.team;
-      var mine = side === 'left' ? T.left : T.right, other = side === 'left' ? T.right : T.left;
-      if (id === mine) return;
-      if (id === other) { var tmp = T.left; T.left = T.right; T.right = tmp; }
-      else if (side === 'left') T.left = id; else T.right = id;
-      saveTeams(); renderBoard();
-    } else if (b.dataset.size) {
+    if (b.dataset.team) pickSide(b.dataset.side, b.dataset.team);
+    else if (b.dataset.size) {
       var n = Number(b.dataset.size); if (n === T.size) return;
       snap(); T.size = n; saveTeams(); formation(); renderBoard();
     }
@@ -1181,7 +1361,7 @@
   function teamsChanged() {
     fixSides(T); saveTeams();
     if (selM && !findMember(selM)) selM = null;
-    renderTeams(); renderBoard();
+    renderTeams(); renderBoard(); renderScore();
   }
   function findMember(id) {
     for (var i = 0; i < T.teams.length; i++) {
@@ -1303,6 +1483,177 @@
   });
 
   renderTeams();
+
+
+  /* ================= 스코어 기록 ================= */
+  /* M = 지금 경기: 킥오프 때 좌우 팀을 고정해 두고, 골은 순서대로 쌓는다 */
+  var MKEY = 'fm.match.v1', HKEY = 'fm.history.v1';
+  var M = loadMatch();
+  function loadMatch() {
+    try {
+      var o = JSON.parse(localStorage.getItem(MKEY));
+      if (o && o.a && o.b && Array.isArray(o.goals)) return o;
+    } catch (e) {}
+    return null;
+  }
+  function saveMatch() { try { if (M) localStorage.setItem(MKEY, JSON.stringify(M)); else localStorage.removeItem(MKEY); } catch (e) {} }
+  function snapTeam(id) { var t = teamById(id); return { id: id, color: t ? t.color : 'red' }; }
+  function newMatch() {
+    if (!S.scoreOn) { M = null; saveMatch(); renderScore(); return; }
+    M = { a: snapTeam(T.left), b: snapTeam(T.right), goals: [], at: Date.now(), dur: S.durationMs };
+    saveMatch(); closeSheet(); hideToast(); renderScore();
+  }
+  /* 경기 종료(리셋) 때: 골이 있거나 1분 넘게 했으면 기록으로 남기고 비운다 (나중에 통계용) */
+  function endMatch() {
+    if (!M) return;
+    var played = S.status === 'idle' ? 0 : S.durationMs - Math.max(0, remaining());
+    if (M.goals.length || played >= 60000) {
+      try {
+        var h = JSON.parse(localStorage.getItem(HKEY)); if (!Array.isArray(h)) h = [];
+        h.push({ at: M.at, played: played, a: M.a, b: M.b, goals: M.goals });
+        while (h.length > 200) h.shift();
+        localStorage.setItem(HKEY, JSON.stringify(h));
+      } catch (e) {}
+    }
+    M = null; saveMatch(); closeSheet(); hideToast(); renderScore();
+  }
+  /* 팀이 해체됐으면 킥오프 때 색으로 보여준다 */
+  function mTeam(side) {
+    var s = M[side], t = teamById(s.id);
+    return { id: s.id, color: t ? t.color : s.color, members: t ? t.members : [] };
+  }
+  function goalsOf(side) { return M ? M.goals.filter(function (g) { return g.team === M[side].id; }) : []; }
+  function elapsedMs() { return Math.max(0, S.durationMs - Math.max(0, remaining())); }
+
+  var lastCount = { a: -1, b: -1 };
+  function renderScore() {
+    document.body.classList.toggle('scoring', !!M);
+    if (!M) {
+      lastCount = { a: -1, b: -1 };
+      $('miniScore').innerHTML = '';
+      return;
+    }
+    var mini = [];
+    ['a', 'b'].forEach(function (side) {
+      var t = mTeam(side), c = COLORS[t.color], gs = goalsOf(side);
+      var el = $(side === 'a' ? 'scA' : 'scB');
+      el.style.borderColor = t.color === 'black' ? '#FFFFFF' : c.bg;   /* 바탕이 검정이라 팀 색은 테두리로 */
+      el.innerHTML = '<span class="sname">' + teamName(t) + '</span><span class="snum">' + gs.length + '</span>';
+      var gb = $(side === 'a' ? 'gbA' : 'gbB');
+      gb.style.backgroundColor = c.bg; gb.style.color = c.fg;
+      if (lastCount[side] >= 0 && gs.length > lastCount[side]) { el.classList.remove('bump'); void el.offsetWidth; el.classList.add('bump'); }
+      lastCount[side] = gs.length;
+      /* 최근 2골까지 (아래 큰 버튼과 겹치지 않게). 전체 골 수는 점수판 숫자로 본다 */
+      var h = '', show = gs.slice(-2);
+      show.forEach(function (g) {
+        h += '<div>⚽ ' + (g.og ? '자책골' : esc(g.s ? g.s.name : '득점')) + (g.as ? ' <span class="gas">(어시 ' + esc(g.as.name) + ')</span>' : '') +
+          '<span class="gmin">' + (Math.floor(g.t / 60000) + 1) + '\'</span></div>';
+      });
+      $(side === 'a' ? 'glogA' : 'glogB').innerHTML = h;
+      mini.push('<b style="background:' + c.bg + ';color:' + c.fg + '" aria-label="' + c.name + '">' + gs.length + '</b>');
+    });
+    $('miniScore').innerHTML = mini[0] + '<span>:</span>' + mini[1];
+  }
+
+  /* ---------- 골 기록 창 ---------- */
+  var elSheet = $('goalSheet'), sh = null, armUndo = null;
+  function openSheet(side) {
+    if (!M) return;
+    sh = { side: side, scorer: undefined, assist: null };
+    disarmUndo(); renderSheet(); elSheet.hidden = false;
+  }
+  function closeSheet() { elSheet.hidden = true; sh = null; disarmUndo(); }
+  function chip(c, on, attrs, label, plain, dis) {
+    return '<button class="mchip' + (plain ? ' plain' : '') + (on ? ' sel' : '') + '" ' + attrs + (dis ? ' disabled' : '') +
+      (plain ? '' : ' style="background-color:' + (on ? c.pbg : c.tint) + ';color:' + (on ? c.pfg : (c.tfg || '#111')) + '"') + '>' + label + '</button>';
+  }
+  function renderSheet() {
+    if (!sh || !M) return;
+    var t = mTeam(sh.side), c = COLORS[t.color], ms = t.members;
+    $('sheet').style.borderTopColor = c.bg;
+    $('shTitle').textContent = teamName(t) + ' 골!';
+    var h = '';
+    ms.forEach(function (m) { h += chip(c, sh.scorer === m.id, 'data-scorer="' + m.id + '"', esc(m.name)); });
+    if (!ms.length) h += chip(c, sh.scorer === null, 'data-scorer=""', '이름 없이', true);
+    h += chip(c, sh.scorer === 'og', 'data-scorer="og"', '자책골', true);
+    $('shScorer').innerHTML = h;
+    h = chip(c, sh.assist === null, 'data-assist=""', '없음', true);
+    ms.forEach(function (m) { h += chip(c, sh.assist === m.id, 'data-assist="' + m.id + '"', esc(m.name), false, sh.scorer === m.id); });
+    $('shAssist').innerHTML = h;
+    $('shAssistBox').hidden = !ms.length || sh.scorer === 'og';   /* 자책골은 어시가 없다 */
+    $('shHint').textContent = ms.length ? '' : '팀 구성에서 이름을 넣으면 득점자를 고를 수 있어요.';
+    $('shOk').disabled = sh.scorer === undefined;
+    var n = goalsOf(sh.side).length;
+    $('shUndo').hidden = !n;
+  }
+  function memberOf(side, id) {
+    var ms = mTeam(side).members;
+    for (var i = 0; i < ms.length; i++) if (ms[i].id === id) return { id: id, name: ms[i].name };
+    return null;
+  }
+  $('gbA').addEventListener('click', function () { openSheet('a'); });
+  $('gbB').addEventListener('click', function () { openSheet('b'); });
+  elSheet.addEventListener('click', function (e) {
+    if (e.target === elSheet) { closeSheet(); return; }
+    var b = e.target.closest('button'); if (!b || !sh) return;
+    var d = b.dataset;
+    if ('scorer' in d) {
+      sh.scorer = d.scorer || null;
+      if (sh.scorer === 'og' || (sh.scorer && sh.assist === sh.scorer)) sh.assist = null;
+      renderSheet();
+    } else if ('assist' in d) {
+      sh.assist = d.assist || null; renderSheet();
+    } else if (b.id === 'shCancel') closeSheet();
+    else if (b.id === 'shOk') addGoal();
+    else if (b.id === 'shUndo') {
+      if (!armUndo) {
+        b.classList.add('armed'); b.textContent = '한 번 더 누르면 취소';
+        armUndo = setTimeout(disarmUndo, 3000); return;
+      }
+      disarmUndo();
+      var gs = goalsOf(sh.side), last = gs[gs.length - 1];
+      if (last) removeGoal(last.id);
+      closeSheet();
+      if (last) showToast('⚽ ' + (last.og ? '자책골' : last.s ? last.s.name + ' 골' : '골') + '을 취소했어요', null);
+    }
+  });
+  function disarmUndo() {
+    clearTimeout(armUndo); armUndo = null;
+    var b = $('shUndo'); b.classList.remove('armed'); b.textContent = '마지막 골 취소';
+  }
+  function addGoal() {
+    if (!sh || !M || sh.scorer === undefined) return;
+    var og = sh.scorer === 'og';
+    var s = sh.scorer && !og ? memberOf(sh.side, sh.scorer) : null, a = sh.assist && !og ? memberOf(sh.side, sh.assist) : null;
+    var g = { id: uid(), team: M[sh.side].id, s: s, as: a, og: og, t: elapsedMs() };
+    var tn = teamName(mTeam(sh.side));
+    M.goals.push(g); saveMatch(); closeSheet(); renderScore();
+    showToast(og ? '⚽ 자책골! ' + tn + ' 득점' : '⚽ ' + (s ? s.name : tn) + ' 골!' + (a ? '  (어시 ' + a.name + ')' : ''), g.id);
+  }
+  function removeGoal(id) {
+    if (!M) return;
+    M.goals = M.goals.filter(function (g) { return g.id !== id; });
+    saveMatch(); renderScore();
+  }
+
+  /* ---------- 알림 + 되돌리기 ---------- */
+  var toastTimer = null, toastGoal = null;
+  function showToast(msg, goalId) {
+    $('toastMsg').textContent = msg; toastGoal = goalId;
+    $('toastUndo').hidden = !goalId;
+    $('toast').hidden = false;
+    clearTimeout(toastTimer); toastTimer = setTimeout(hideToast, goalId ? 10000 : 2500);
+  }
+  function hideToast() { clearTimeout(toastTimer); $('toast').hidden = true; toastGoal = null; }
+  $('toastUndo').addEventListener('click', function () {
+    if (toastGoal) removeGoal(toastGoal);
+    showToast('되돌렸어요', null);
+  });
+
+  /* 이전 버전에서 경기 중이었다면 지금 좌우 팀으로 이어서 기록한다 */
+  if (S.status !== 'idle' && !M && S.scoreOn) { M = { a: snapTeam(T.left), b: snapTeam(T.right), goals: [], at: Date.now(), dur: S.durationMs }; saveMatch(); }
+  if (S.status === 'idle' && M) { M = null; saveMatch(); }
+  renderScore();
 
   /* ---------- 화면 전환 ---------- */
   var view = 'timer';
