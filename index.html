@@ -343,8 +343,9 @@
   /* 킥오프 전: 이번 경기 두 팀 고르기 (전술판 좌우 팀과 같은 설정) */
   .matchup { display: none; align-items: center; justify-content: center; gap: 1vw; margin-bottom: 1.8vh; }
   body[data-status="idle"] .matchup { display: flex; }
-  .matchup .side-pick { flex: none; }
-  .matchup .chip { flex: none; width: 6.2em; }
+  /* 팀이 많으면 버튼이 같이 줄어들어 화면 안에 가운데로 들어오게 한다 */
+  .matchup .side-pick { flex: 0 1 auto; min-width: 0; }
+  .matchup .chip { flex: 0 1 6.2em; width: 6.2em; min-width: 0; }
   /* 꺼짐: 좌우 팀 선택은 없애고 스위치만 가운데에 남긴다 */
   body:not(.score-on) #mpL, body:not(.score-on) #mpR { display: none; }
   /* 가운데(VS 자리): 검정 박스 안에 '스코어 기록' + 스위치 (ON/OFF 글자는 스위치 안) */
@@ -373,7 +374,7 @@
   .stoggle[aria-pressed="true"] .st-text { left: 0.2em; right: 1.6em; color: #04130A; }
   /* ON: 팀 선택 줄 전체를 박스로 묶는다 (아래 설정 박스와 같은 반투명 판, 스위치의 검정과 구분) / OFF: 박스 없이 스위치만 */
   /* 박스 여백·테두리 자리는 OFF일 때도 잡아 두어 ON/OFF에 시계가 움직이지 않게 한다 */
-  .matchup { width: max-content; margin-left: auto; margin-right: auto; padding: 1.2vh 1.2vw; border: 2px solid transparent; border-radius: 22px; }
+  .matchup { width: max-content; max-width: 100%; margin-left: auto; margin-right: auto; padding: 1.2vh 1.2vw; border: 2px solid transparent; border-radius: 22px; }
   body.score-on .matchup {
     background: rgba(28,36,31,0.86); border-color: rgba(255,255,255,0.16);
     box-shadow: 0 6px 18px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.08);
@@ -642,7 +643,7 @@
 (function () {
   'use strict';
 
-  var APP_VERSION = '0.8.17';
+  var APP_VERSION = '0.8.18';
   var KEY = 'fm.timer.v1';
   var MIN_MS = 60 * 1000;
   var MAX_MS = 99 * 60 * 1000;
