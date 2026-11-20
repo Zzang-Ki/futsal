@@ -448,6 +448,7 @@
     font-size: max(18px, 3vh); white-space: nowrap;
   }
   .toast[hidden] { display: none; }
+  body:not([data-view="timer"]) .toast.goal { display: none; }   /* 골 토스트는 타이머 화면에서만 */
   .toast .tool { flex: none; height: 6.4vh; padding: 0 1.6vw; }
 
   /* 점수판은 누르는 곳이 아니라 평평한 판, 골 기록 버튼만 입체 */
@@ -638,7 +639,7 @@
 (function () {
   'use strict';
 
-  var APP_VERSION = '0.8.13';
+  var APP_VERSION = '0.8.14';
   var KEY = 'fm.timer.v1';
   var MIN_MS = 60 * 1000;
   var MAX_MS = 99 * 60 * 1000;
@@ -1619,14 +1620,25 @@
   }
 
   /* ---------- 알림 + 되돌리기 ---------- */
-  var toastTimer = null, toastGoal = null;
+  /* 골 토스트는 타이머 화면에서만 보이고, 10초도 타이머 화면에 있는 동안만 줄어든다
+     (다른 화면에 갔다 오면 남은 시간만큼 다시 보인다) */
+  var toastTimer = null, toastGoal = null, toastLeft = 0, toastFrom = 0;
   function showToast(msg, goalId, ms) {
     $('toastMsg').textContent = msg; toastGoal = goalId;
     $('toastUndo').hidden = !goalId;
+    $('toast').classList.toggle('goal', !!goalId);
     $('toast').hidden = false;
-    clearTimeout(toastTimer); toastTimer = setTimeout(hideToast, ms || (goalId ? 10000 : 2500));
+    clearTimeout(toastTimer); toastTimer = null;
+    toastLeft = ms || (goalId ? 10000 : 2500);
+    if (!goalId || view === 'timer') runToast();
   }
-  function hideToast() { clearTimeout(toastTimer); $('toast').hidden = true; toastGoal = null; }
+  function runToast() { toastFrom = Date.now(); toastTimer = setTimeout(hideToast, toastLeft); }
+  function hideToast() { clearTimeout(toastTimer); toastTimer = null; $('toast').hidden = true; toastGoal = null; }
+  function toastViewChanged(v) {
+    if ($('toast').hidden || !toastGoal) return;
+    if (v !== 'timer' && toastTimer) { clearTimeout(toastTimer); toastTimer = null; toastLeft -= Date.now() - toastFrom; }
+    else if (v === 'timer' && !toastTimer) runToast();
+  }
   $('toastUndo').addEventListener('click', function () {
     if (toastGoal) removeGoal(toastGoal);
     showToast('되돌렸어요', null);
@@ -1656,6 +1668,7 @@
   }
   function setView(v) {
     view = v; document.body.dataset.view = v;
+    toastViewChanged(v);
     var tabs = document.querySelectorAll('#tabs .tab');
     for (var i = 0; i < tabs.length; i++) tabs[i].classList.toggle('sel', tabs[i].dataset.view === v);
     try { localStorage.setItem('fm.view', v); } catch (e) {}
