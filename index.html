@@ -101,7 +101,7 @@
     background: rgba(8,11,9,0.80); border: 2px solid rgba(255,255,255,0.16); border-radius: 20px;
     box-shadow: 0 6px 18px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.08);
   }
-  .col > label { text-align: center; font-size: calc(max(17px, 2.9vh) + 4px); font-weight: 700; color: #A9B8AE; }
+  .col > label { text-align: center; font-size: calc(max(17px, 2.9vh) + 4px); font-weight: 400; color: #E6EDE8; }   /* '스코어 기록' 글자와 같은 색 */
   .grid2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.8vw; }
   .col-time { flex: 2; } .col-warn { flex: 3; }
   .settings .opt { height: calc(8vh + 10px); font-size: calc(max(17px, 3vh) + 4px); }
@@ -202,7 +202,8 @@
   /* ---------- 화면 전환 ---------- */
   .view { flex: 1; min-height: 0; display: flex; flex-direction: column; }
   body:not([data-view="timer"]) #viewTimer, body:not([data-view="board"]) #viewBoard, body:not([data-view="team"]) #viewTeam { display: none; }
-  body:not([data-view="timer"]) .sndbtn, body[data-view="timer"] .mini { display: none; }
+  .sndgroup { display: flex; gap: 0.6vw; }   /* 탭(타이머·전술판·팀 구성)과 같은 간격 */
+  body:not([data-view="timer"]) .sndgroup, body[data-view="timer"] .mini { display: none; }
   .tabs { display: flex; gap: 0.6vw; }
   .tab { background-color: var(--panel); }
   .tab {
@@ -506,9 +507,11 @@
       <button class="topbtn mini-btn mini-reset" id="miniReset">경기 종료</button>
       <button class="topbtn mini-btn" id="miniMain">킥오프</button>
     </div>
-    <button class="topbtn sndbtn" id="soundW3">3분 전 알림</button>
-    <button class="topbtn sndbtn" id="soundW1">1분 전 알림</button>
-    <button class="topbtn sndbtn" id="soundEnd">종료 알림</button>
+    <div class="sndgroup">
+      <button class="topbtn sndbtn" id="soundW3">3분 전 알림</button>
+      <button class="topbtn sndbtn" id="soundW1">1분 전 알림</button>
+      <button class="topbtn sndbtn" id="soundEnd">종료 알림</button>
+    </div>
     <div class="version" id="version"></div>
   </header>
 
@@ -635,7 +638,7 @@
 (function () {
   'use strict';
 
-  var APP_VERSION = '0.8.12';
+  var APP_VERSION = '0.8.13';
   var KEY = 'fm.timer.v1';
   var MIN_MS = 60 * 1000;
   var MAX_MS = 99 * 60 * 1000;
@@ -733,6 +736,8 @@
     var m = Math.floor(t / 60), s = t % 60;
     return (m < 10 ? '0' : '') + m + ':' + (s < 10 ? '0' : '') + s;
   }
+  /* 경기 시간 표기: 3:12' (분 앞자리 0 없음) */
+  function clockMark(ms) { var t = Math.max(0, Math.floor(ms / 1000)), sec = t % 60; return Math.floor(t / 60) + ':' + (sec < 10 ? '0' : '') + sec + '\''; }
   function warnLabel(sec) { return sec < 60 ? sec + '초' : (sec / 60) + '분'; }
 
   var last = {};
@@ -759,7 +764,6 @@
     setText(elMain, 'main', mainLabel);
     setText(elMiniTime, 'mtime', fmt(st === 'idle' ? S.durationMs : r));
     setText(elMiniMain, 'mmain', mainLabel);
-    setText(elShTime, 'shtime', fmt(st === 'idle' ? 0 : S.durationMs - Math.max(0, r)).replace(/^0(?=\d:)/, '') + '\'');   /* 03:12 → 3:12' */
 
     if (st === 'idle') {
       var key = S.durationMs + '|' + S.warnSec + '|' + S.scoreOn;
@@ -1536,7 +1540,7 @@
       var h = '', show = gs.slice(-5);
       show.forEach(function (g) {
         h += '<div>⚽ ' + (g.og ? '자책골' : esc(g.s ? g.s.name : '득점')) + (g.as ? ' <span class="gas">(어시 ' + esc(g.as.name) + ')</span>' : '') +
-          '<span class="gmin">' + (Math.floor(g.t / 60000) + 1) + '\'</span></div>';
+          '<span class="gmin">' + clockMark(g.t) + '</span></div>';
       });
       $(side === 'a' ? 'glogA' : 'glogB').innerHTML = h;
     });
@@ -1546,7 +1550,8 @@
   var elSheet = $('goalSheet'), sh = null;
   function openSheet(side) {
     if (!M) return;
-    sh = { side: side, scorer: undefined, assist: null };
+    sh = { side: side, scorer: undefined, assist: null, t: elapsedMs() };   /* 누른 순간의 경기 시간 */
+    elShTime.textContent = clockMark(sh.t);
     renderSheet(); elSheet.hidden = false;
   }
   function closeSheet() { elSheet.hidden = true; sh = null; }
@@ -1602,7 +1607,7 @@
     if (!sh || !M || sh.scorer === undefined) return;
     var og = sh.scorer === 'og';
     var s = sh.scorer && !og ? memberOf(sh.side, sh.scorer) : null, a = sh.assist && !og ? memberOf(sh.side, sh.assist) : null;
-    var g = { id: uid(), team: M[sh.side].id, s: s, as: a, og: og, t: elapsedMs() };
+    var g = { id: uid(), team: M[sh.side].id, s: s, as: a, og: og, t: sh.t };
     var tn = teamName(mTeam(sh.side));
     M.goals.push(g); saveMatch(); closeSheet(); renderScore();
     showToast(og ? '⚽ 자책골! ' + tn + ' 득점' : '⚽ ' + (s ? s.name : tn) + ' 골!' + (a ? '  (어시 ' + a.name + ')' : ''), g.id);
