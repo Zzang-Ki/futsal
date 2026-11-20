@@ -399,7 +399,8 @@
   }
   .goalbtn .gb-plus { font-size: 1.6em; line-height: 0.8; }
   /* 점수판 아래 득점 기록 */
-  .scol .glog { position: absolute; left: -1vw; right: -1vw; top: calc(100% + 2vh); margin: 0; }
+  .scol .glog { position: absolute; left: -1vw; right: -1vw; top: calc(100% + 1.4vh); margin: 0; gap: 0.5vh; }   /* 5줄이 하단 버튼 위에 들어가게 촘촘히 */
+  .scol .glog div { font-size: max(14px, 2.2vh); padding: 0.35vh 0.9vw; }
   .score.bump .snum { animation: bump 0.6s ease-out; }
   @keyframes bump { 0% { transform: scale(1); } 30% { transform: scale(1.35); } 100% { transform: scale(1); } }
   /* 점수판 아래 득점 기록 */
@@ -647,7 +648,7 @@
 (function () {
   'use strict';
 
-  var APP_VERSION = '0.8.9';
+  var APP_VERSION = '0.8.10';
   var KEY = 'fm.timer.v1';
   var MIN_MS = 60 * 1000;
   var MAX_MS = 99 * 60 * 1000;
@@ -1543,8 +1544,8 @@
       gb.style.backgroundColor = c.bg; gb.style.color = c.fg;
       if (lastCount[side] >= 0 && gs.length > lastCount[side]) { el.classList.remove('bump'); void el.offsetWidth; el.classList.add('bump'); }
       lastCount[side] = gs.length;
-      /* 최근 2골까지 (아래 큰 버튼과 겹치지 않게). 전체 골 수는 점수판 숫자로 본다 */
-      var h = '', show = gs.slice(-2);
+      /* 최근 5골까지 (더 오래된 골은 점수판 숫자로 본다) */
+      var h = '', show = gs.slice(-5);
       show.forEach(function (g) {
         h += '<div>⚽ ' + (g.og ? '자책골' : esc(g.s ? g.s.name : '득점')) + (g.as ? ' <span class="gas">(어시 ' + esc(g.as.name) + ')</span>' : '') +
           '<span class="gmin">' + (Math.floor(g.t / 60000) + 1) + '\'</span></div>';
