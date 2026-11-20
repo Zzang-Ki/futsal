@@ -430,9 +430,11 @@
     box-shadow: 0 20px 60px rgba(0,0,0,0.6);
   }
   /* 헤더: 팀 색 바탕으로 본문과 구분 */
-  .sh-head { flex: none; display: flex; align-items: center; gap: 1vw; padding: 1.8vh 2vw; margin-bottom: 2.4vh; border-bottom: 2px solid rgba(0,0,0,0.35); }
+  .sh-head { flex: none; display: flex; align-items: baseline; gap: 0; padding: 1.8vh 2vw; margin-bottom: 2.4vh; border-bottom: 2px solid rgba(0,0,0,0.35); }
   .sh-title { font-size: max(24px, 4.6vh); font-weight: 700; }
-  .sh-time { font-size: max(20px, 3.6vh); font-weight: 400; opacity: 0.85; font-variant-numeric: tabular-nums; }   /* 제목 바로 오른쪽, 경기 시작 후 지난 시간 (예: 03:10') */
+  /* 제목 바로 오른쪽 아래에 붙인 득점 시간 — 점수판 아래 득점 기록의 시간과 같은 글꼴·노랑, 굵게 */
+  .sh-time { margin-left: 0.6vw; font-size: max(20px, 3.4vh); font-weight: 700; color: var(--yellow); line-height: 1; }
+  .sh-head.light .sh-time { color: #111; }   /* 노랑·하양 헤더에서는 노란 글자가 안 보여 검정으로 */
   .sh-body { flex: 1; min-height: 0; overflow-y: auto; padding: 0 2vw; display: flex; flex-direction: column; gap: 4.4vh; }   /* 득점 ↔ 어시스트 간격 */
   .sh-label { display: flex; align-items: center; gap: 0.6vw; font-size: max(22px, 3.8vh); font-weight: 700; color: #FFFFFF; margin-bottom: 1.4vh; }
   .sh-label::before { content: ''; width: 6px; height: 1.1em; border-radius: 3px; background: var(--yellow); }
@@ -644,7 +646,7 @@
 (function () {
   'use strict';
 
-  var APP_VERSION = '0.8.6';
+  var APP_VERSION = '0.8.7';
   var KEY = 'fm.timer.v1';
   var MIN_MS = 60 * 1000;
   var MAX_MS = 99 * 60 * 1000;
@@ -1574,6 +1576,7 @@
     var t = mTeam(sh.side), c = COLORS[t.color], ms = t.members;
     shAcc = ACC[t.color] || c.bg;
     var hd = $('sheet').querySelector('.sh-head'); hd.style.backgroundColor = t.color === 'black' ? '#4A4A4A' : c.bg; hd.style.color = c.fg;   /* 검정 팀은 창 바탕과 구분되게 회색 */
+    hd.classList.toggle('light', t.color === 'yellow' || t.color === 'white');
     $('shTitle').textContent = teamName(t) + ' 골!';
     var h = '';
     ms.forEach(function (m) { h += chip(c, sh.scorer === m.id, 'data-scorer="' + m.id + '"', esc(m.name)); });
