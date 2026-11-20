@@ -643,7 +643,7 @@
 (function () {
   'use strict';
 
-  var APP_VERSION = '0.8.22';
+  var APP_VERSION = '0.8.23';
   var KEY = 'fm.timer.v1';
   var MIN_MS = 60 * 1000;
   var MAX_MS = 99 * 60 * 1000;
@@ -901,10 +901,10 @@
 
   /* 킥오프 휘슬: 삐~~~~~ㄱ (파일 없이 직접 만든 심판 호루라기 소리)
      높이가 조금 다른 음 두 개를 같이 불어 실제 호루라기처럼 '쨍'하게 거칠고,
-     구슬 떨림(초당 27번)과 바람 소리를 섞은 뒤 압축기로 세게 만든다. 끝은 딱 끊긴다. */
+     구슬 떨림(초당 27번)은 살짝만 넣고 바람 소리 없이 깔끔하게, 압축기로 세게 만든다. 끝은 딱 끊긴다. */
   function playWhistle() {
     var c = unlockAudio(); if (!c) return;
-    var t = c.currentTime + 0.03, dur = 1.4, end = t + dur;
+    var t = c.currentTime + 0.03, dur = 1.2, end = t + dur;
     var nodes = [];
 
     var comp = c.createDynamicsCompressor();   /* 작은 소리를 끌어올려 힘 있게 */
@@ -919,11 +919,11 @@
     out.gain.linearRampToValueAtTime(0, end);
     out.connect(comp);
 
-    var trem = c.createGain(); trem.gain.value = 0.7;   /* 구슬 떨림(소리 크기) */
+    var trem = c.createGain(); trem.gain.value = 0.85;   /* 구슬 떨림(소리 크기) */
     trem.connect(out);
 
     var lfo = c.createOscillator(); lfo.frequency.value = 27;
-    var lfoAmp = c.createGain(); lfoAmp.gain.value = 0.3;
+    var lfoAmp = c.createGain(); lfoAmp.gain.value = 0.15;
     lfo.connect(lfoAmp); lfoAmp.connect(trem.gain);
     nodes.push(lfo);
 
@@ -940,14 +940,6 @@
       nodes.push(o);
     });
 
-    /* 바람 소리: 잡음을 호루라기 음역대만 남겨 섞는다 */
-    var len = Math.floor(c.sampleRate * dur), buf = c.createBuffer(1, len, c.sampleRate), d = buf.getChannelData(0);
-    for (var i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
-    var noise = c.createBufferSource(); noise.buffer = buf;
-    var bp = c.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = 3000; bp.Q.value = 2;
-    var ng = c.createGain(); ng.gain.value = 0.22;
-    noise.connect(bp); bp.connect(ng); ng.connect(out);
-    nodes.push(noise);
 
     nodes.forEach(function (n) { n.start(t); n.stop(end); track(n); });
   }
