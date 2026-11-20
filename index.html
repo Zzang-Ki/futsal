@@ -412,15 +412,6 @@
   .glog .gmin { color: var(--yellow); margin-left: 0.4em; }
   .glog .gas { color: var(--dim); font-size: 0.9em; }
   .glog .more { color: var(--dim); }
-  /* 상단 작은 스코어 (다른 화면에서) */
-  .mini-score { display: none; align-items: center; gap: 0.6vw; font-size: max(15px, 2.4vh); }
-  body.scoring:not([data-status="idle"]) .mini-score { display: flex; }
-  body.scoring[data-status="running"] .mini-status { display: none; }   /* 자리가 모자라 '종료 N분 전' 글자는 빼고 노란 시계로 대신한다 */
-  .mini-score b {
-    min-width: 1.5em; padding: 0.6vh 0.5vw; border-radius: 10px; border: 2px solid rgba(255,255,255,0.75); text-align: center;
-    font-family: 'FMDigits', system-ui, sans-serif; font-weight: 700; font-size: max(20px, 3.6vh); line-height: 1;
-  }
-  .mini-score span { font-weight: 700; font-size: max(18px, 3vh); color: var(--dim); }
   .tab, .version, .mini-status, .mini-btn { flex: none; white-space: nowrap; }
 
   /* 골 기록 창 */
@@ -514,7 +505,6 @@
     <div class="spacer"></div>
     <div class="mini">
       <span class="mini-status" id="miniStatus"></span>
-      <span class="mini-score" id="miniScore"></span>
       <span class="mini-time" id="miniTime">10:00</span>
       <button class="topbtn mini-btn mini-reset" id="miniReset">경기 종료</button>
       <button class="topbtn mini-btn" id="miniMain">킥오프</button>
@@ -648,7 +638,7 @@
 (function () {
   'use strict';
 
-  var APP_VERSION = '0.8.10';
+  var APP_VERSION = '0.8.11';
   var KEY = 'fm.timer.v1';
   var MIN_MS = 60 * 1000;
   var MAX_MS = 99 * 60 * 1000;
@@ -1531,10 +1521,8 @@
     document.body.classList.toggle('scoring', !!M);
     if (!M) {
       lastCount = { a: -1, b: -1 };
-      $('miniScore').innerHTML = '';
       return;
     }
-    var mini = [];
     ['a', 'b'].forEach(function (side) {
       var t = mTeam(side), c = COLORS[t.color], gs = goalsOf(side);
       var el = $(side === 'a' ? 'scA' : 'scB');
@@ -1551,9 +1539,7 @@
           '<span class="gmin">' + (Math.floor(g.t / 60000) + 1) + '\'</span></div>';
       });
       $(side === 'a' ? 'glogA' : 'glogB').innerHTML = h;
-      mini.push('<b style="background:' + c.bg + ';color:' + c.fg + '" aria-label="' + c.name + '">' + gs.length + '</b>');
     });
-    $('miniScore').innerHTML = mini[0] + '<span>:</span>' + mini[1];
   }
 
   /* ---------- 골 기록 창 ---------- */
