@@ -378,7 +378,8 @@
   }
   body:not(.score-on) .stoggle { margin: 0; }
   /* 경기 중: 시계 양옆 팀 점수판 (누르면 골 기록) */
-  body.scoring:not([data-status="idle"]) .time-row { gap: 2vw; margin-top: 19vh; }   /* 위에 점수판 자리 */
+  body.scoring:not([data-status="idle"]) .time-row { gap: 2vw; }
+  body:not([data-status="idle"]) .time-row { margin-top: 1vh; }   /* 위쪽 여백(1vh)만큼 보정해 정확히 가운데 */   /* 시계는 상단 바~하단 버튼 사이 세로 가운데, 점수판은 그 위 빈 공간에 띄운다 */
   /* --clock: 경기 중 시계 글자 크기. 숫자 모양 높이가 글자 크기와 거의 같아서(0.995배) 위·아래 끝을 맞춘다 */
   body { --clock: min(16.5vw, 46vh); }
   /* 골 기록 버튼 = 시계 숫자와 같은 높이, 점수판은 그 위에 따로 */
@@ -646,7 +647,7 @@
 (function () {
   'use strict';
 
-  var APP_VERSION = '0.8.8';
+  var APP_VERSION = '0.8.9';
   var KEY = 'fm.timer.v1';
   var MIN_MS = 60 * 1000;
   var MAX_MS = 99 * 60 * 1000;
