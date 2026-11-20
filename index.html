@@ -101,7 +101,7 @@
     background: rgba(8,11,9,0.80); border: 2px solid rgba(255,255,255,0.16); border-radius: 20px;
     box-shadow: 0 6px 18px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.08);
   }
-  .col > label { text-align: center; font-size: calc(max(17px, 2.9vh) + 4px); font-weight: 400; color: #E6EDE8; }   /* '스코어 기록' 글자와 같은 색 */
+  .col > label { text-align: center; font-size: calc(max(17px, 2.9vh) + 4px + 2pt); font-weight: 400; color: #E6EDE8; }   /* '스코어 기록' 글자와 같은 색 */
   .grid2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.8vw; }
   .col-time { flex: 2; } .col-warn { flex: 3; }
   .settings .opt { height: calc(8vh + 10px); font-size: calc(max(17px, 3vh) + 4px); }
@@ -639,7 +639,7 @@
 (function () {
   'use strict';
 
-  var APP_VERSION = '0.8.15';
+  var APP_VERSION = '0.8.16';
   var KEY = 'fm.timer.v1';
   var MIN_MS = 60 * 1000;
   var MAX_MS = 99 * 60 * 1000;
