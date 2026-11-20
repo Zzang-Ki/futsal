@@ -643,7 +643,7 @@
 (function () {
   'use strict';
 
-  var APP_VERSION = '0.8.23';
+  var APP_VERSION = '0.8.24';
   var KEY = 'fm.timer.v1';
   var MIN_MS = 60 * 1000;
   var MAX_MS = 99 * 60 * 1000;
@@ -789,7 +789,7 @@
   elMain.addEventListener('click', function () {
     unlockAudio();
     if (S.status === 'idle') { playWhistle(); if (view === 'timer') withTransition('kick', start); else start(); }
-    else if (S.status === 'paused') start();
+    else if (S.status === 'paused') { playWhistle(); start(); }
     else if (S.status === 'running') pause();
     else endWithTransition();
   });
@@ -899,49 +899,61 @@
   /* 종료 알림: 자, 막공입니다. */
   function playEnd() { playVoice('last'); }
 
-  /* 킥오프 휘슬: 삐~~~~~ㄱ (파일 없이 직접 만든 심판 호루라기 소리)
-     높이가 조금 다른 음 두 개를 같이 불어 실제 호루라기처럼 '쨍'하게 거칠고,
-     구슬 떨림(초당 27번)은 살짝만 넣고 바람 소리 없이 깔끔하게, 압축기로 세게 만든다. 끝은 딱 끊긴다. */
+  /* 킥오프·경기 재개 휘슬 (파일 없이 직접 만든 심판 호루라기 소리)
+     실제 심판 휘슬 녹음을 분석한 값으로 만들었다: 3200Hz, 1.0초,
+     초당 108번 빠르게 떨려서(높이 ±100Hz, 크기 약 45%) "지이잉" 하는 거친 느낌,
+     시작은 0.015초 만에 확 올라오고 끝은 딱 끊기며 방 울림이 살짝 남는다. */
+  var whistleRev = null;
+  function whistleReverb(c) {           /* 방 울림: 1초 동안 점점 작아지는 잡음 */
+    if (whistleRev) return whistleRev;
+    var n = Math.floor(c.sampleRate * 1.2), b = c.createBuffer(2, n, c.sampleRate), sum = 0, ch, i, d;
+    for (ch = 0; ch < 2; ch++) {
+      d = b.getChannelData(ch);
+      for (i = 0; i < n; i++) { d[i] = (Math.random() * 2 - 1) * Math.exp(-6.9 * i / c.sampleRate); sum += d[i] * d[i]; }
+    }
+    var k = 1 / Math.sqrt(sum / 2);
+    for (ch = 0; ch < 2; ch++) { d = b.getChannelData(ch); for (i = 0; i < n; i++) d[i] *= k; }
+    return (whistleRev = b);
+  }
   function playWhistle() {
     var c = unlockAudio(); if (!c) return;
-    var t = c.currentTime + 0.03, dur = 1.2, end = t + dur;
-    var nodes = [];
+    var f0 = 3200, dur = 1.0, t = c.currentTime + 0.03, end = t + dur, nodes = [];
 
-    var comp = c.createDynamicsCompressor();   /* 작은 소리를 끌어올려 힘 있게 */
-    comp.threshold.value = -20; comp.knee.value = 6; comp.ratio.value = 8;
-    comp.attack.value = 0.002; comp.release.value = 0.1;
-    comp.connect(c.destination);
+    var master = c.createGain(); master.gain.value = 0.9; master.connect(c.destination);
+    var conv = c.createConvolver(); conv.buffer = whistleReverb(c);
+    var wet = c.createGain(); wet.gain.value = 0.12;
+    conv.connect(wet); wet.connect(master);
 
-    var out = c.createGain();                  /* 전체 크기: 빠르게 확 올라가고 끝은 딱 */
-    out.gain.setValueAtTime(0, t);
-    out.gain.linearRampToValueAtTime(1.0, t + 0.025);
-    out.gain.setValueAtTime(1.0, end - 0.006);
-    out.gain.linearRampToValueAtTime(0, end);
-    out.connect(comp);
+    var env = c.createGain();            /* 크기: 확 올라와서 살짝 가라앉고, 끝은 딱 */
+    env.gain.setValueAtTime(0, t);
+    env.gain.linearRampToValueAtTime(1.0, t + 0.015);
+    env.gain.setValueAtTime(1.0, t + 0.04);
+    env.gain.linearRampToValueAtTime(0.56, t + 0.12);
+    env.gain.setValueAtTime(0.56, end - 0.015);
+    env.gain.linearRampToValueAtTime(0, end);
+    env.connect(master); env.connect(conv);
 
-    var trem = c.createGain(); trem.gain.value = 0.85;   /* 구슬 떨림(소리 크기) */
-    trem.connect(out);
+    var am = c.createGain(); am.gain.value = 0.55; am.connect(env);   /* 초당 108번 크기 출렁임 */
+    var r = 330 * Math.PI / 180;
+    var amLfo = c.createOscillator();
+    amLfo.setPeriodicWave(c.createPeriodicWave(new Float32Array([0, Math.sin(r)]), new Float32Array([0, Math.cos(r)]), { disableNormalization: true }));
+    amLfo.frequency.value = 108;
+    var amDepth = c.createGain(); amDepth.gain.value = 0.45 * 0.55;
+    amLfo.connect(amDepth); amDepth.connect(am.gain); nodes.push(amLfo);
 
-    var lfo = c.createOscillator(); lfo.frequency.value = 27;
-    var lfoAmp = c.createGain(); lfoAmp.gain.value = 0.15;
-    lfo.connect(lfoAmp); lfoAmp.connect(trem.gain);
-    nodes.push(lfo);
+    var fmLfo = c.createOscillator(); fmLfo.frequency.value = 108; nodes.push(fmLfo);   /* 초당 108번 높이 출렁임 */
+    var drift = c.createOscillator(); drift.frequency.value = 10; nodes.push(drift);    /* 느린 흔들림 */
 
-    /* [음 높이, 크기, 파형] — 두 음이 부딪히며 호루라기 특유의 쨍한 소리가 난다 */
-    var tones = [[2900, 0.55, 'triangle'], [3120, 0.40, 'triangle'], [5800, 0.08, 'sine']];
-    tones.forEach(function (v) {
-      var o = c.createOscillator(); o.type = v[2];
-      o.frequency.setValueAtTime(v[0] * 0.93, t);
-      o.frequency.linearRampToValueAtTime(v[0], t + 0.05);
-      var lp = c.createGain(); lp.gain.value = v[0] * 0.025;   /* 구슬 떨림(음 높이) */
-      lfo.connect(lp); lp.connect(o.frequency);
-      var g = c.createGain(); g.gain.value = v[1];
-      o.connect(g); g.connect(trem);
-      nodes.push(o);
+    [[1, 0.8], [2, 0.056], [3, 0.04]].forEach(function (h) {   /* 기본음 + 약한 배음 2개 */
+      var o = c.createOscillator(), f = f0 * h[0];
+      o.frequency.setValueAtTime(f * 0.97, t);
+      o.frequency.linearRampToValueAtTime(f, t + 0.03);
+      var fd = c.createGain(); fd.gain.value = 100 * h[0]; fmLfo.connect(fd); fd.connect(o.frequency);
+      var dd = c.createGain(); dd.gain.value = 30 * h[0]; drift.connect(dd); dd.connect(o.frequency);
+      var g = c.createGain(); g.gain.value = h[1];
+      o.connect(g); g.connect(am); nodes.push(o);
     });
-
-
-    nodes.forEach(function (n) { n.start(t); n.stop(end); track(n); });
+    nodes.forEach(function (n) { n.start(t); n.stop(end + 0.02); track(n); });
   }
 
   /* ---------- 화면 꺼짐 방지 ---------- */
