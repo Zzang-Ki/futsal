@@ -264,6 +264,9 @@
     font-size: max(15px, 2.4vh); font-weight: 400; border: 3px solid rgba(0,0,0,0.35); opacity: 0.45;
   }
   .chip.sel { opacity: 1; font-weight: 700; border-color: #fff; box-shadow: 0 0 0 3px rgba(255,255,255,0.25), 0 4px 0 rgba(0,0,0,0.55); }
+  .chip .sw-ico { height: 58%; width: auto; max-width: 60%; }
+  .chip.sel { display: flex; align-items: center; justify-content: center; }
+  .chip.locked { pointer-events: none; }
   .chip.other { opacity: 1; background-image: none !important; box-shadow: none !important; border-color: rgba(255,255,255,0.12); color: rgba(255,255,255,0.7) !important; display: flex; align-items: center; justify-content: center; }
   .swap-ico { width: 1.4em; height: 1.4em; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
   .bar-mid { flex: none; display: flex; gap: 0.6vw; }
@@ -639,7 +642,7 @@
 (function () {
   'use strict';
 
-  var APP_VERSION = '0.8.16';
+  var APP_VERSION = '0.8.17';
   var KEY = 'fm.timer.v1';
   var MIN_MS = 60 * 1000;
   var MAX_MS = 99 * 60 * 1000;
@@ -1126,20 +1129,25 @@
     saveTeams(); renderBoard();
   }
   $('matchup').addEventListener('click', function (e) {
-    var b = e.target.closest('button'); if (b && b.dataset.team && S.status === 'idle') pickSide(b.dataset.side, b.dataset.team);
+    var b = e.target.closest('button'); if (b && b.dataset.team && !b.disabled && S.status === 'idle') pickSide(b.dataset.side, b.dataset.team);
   });
   function renderPickers() {
     ['left', 'right'].forEach(function (side) {
       var mine = side === 'left' ? T.left : T.right, other = side === 'left' ? T.right : T.left;
-      var h = '';
-      T.teams.forEach(function (t) {
-        var c = COLORS[t.color];
-        h += '<button class="chip' + (t.id === mine ? ' sel' : t.id === other ? ' other' : '') + '" data-side="' + side + '" data-team="' + t.id +
-          '" style="background-color:' + (t.id === other ? mute(c.bg) : c.bg) + ';color:' + c.fg + '">' +
-          (t.id === other ? SWAP_ICO : c.name) + '</button>';
-      });
-      $(side === 'left' ? 'pickL' : 'pickR').innerHTML = h;
-      $(side === 'left' ? 'mpL' : 'mpR').innerHTML = h;
+      /* forTimer: 타이머는 팀 이름을 보이고 상대 팀은 잠금, 전술판은 고른 팀에 체크(팀 구성과 같은 방식)·상대 팀은 교체 */
+      function build(forTimer) {
+        var h = '';
+        T.teams.forEach(function (t) {
+          var c = COLORS[t.color], isMine = t.id === mine, isOther = t.id === other;
+          var label = isOther ? (forTimer ? LOCK_ICO : SWAP_ICO) : (isMine && !forTimer ? CHECK_ICO : c.name);
+          h += '<button class="chip' + (isMine ? ' sel' : isOther ? ' other' : '') + (isOther && forTimer ? ' locked' : '') + '" data-side="' + side + '" data-team="' + t.id + '"' +
+            (isOther && forTimer ? ' disabled' : '') +
+            ' style="background-color:' + (isOther ? mute(c.bg) : c.bg) + ';color:' + c.fg + '">' + label + '</button>';
+        });
+        return h;
+      }
+      $(side === 'left' ? 'pickL' : 'pickR').innerHTML = build(false);
+      $(side === 'left' ? 'mpL' : 'mpR').innerHTML = build(true);
     });
     var segs = document.querySelectorAll('#sizeSeg [data-size]');
     for (var i = 0; i < segs.length; i++) segs[i].classList.toggle('sel', Number(segs[i].dataset.size) === T.size);
