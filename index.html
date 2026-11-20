@@ -643,7 +643,7 @@
 (function () {
   'use strict';
 
-  var APP_VERSION = '0.8.21';
+  var APP_VERSION = '0.8.22';
   var KEY = 'fm.timer.v1';
   var MIN_MS = 60 * 1000;
   var MAX_MS = 99 * 60 * 1000;
@@ -899,12 +899,12 @@
   /* 종료 알림: 자, 막공입니다. */
   function playEnd() { playVoice('last'); }
 
-  /* 킥오프 휘슬: 삐~~~ (파일 없이 직접 만든 심판 호루라기 소리)
+  /* 킥오프 휘슬: 삐~~~~~ㄱ (파일 없이 직접 만든 심판 호루라기 소리)
      높이가 조금 다른 음 두 개를 같이 불어 실제 호루라기처럼 '쨍'하게 거칠고,
      구슬 떨림(초당 27번)과 바람 소리를 섞은 뒤 압축기로 세게 만든다. 끝은 딱 끊긴다. */
   function playWhistle() {
     var c = unlockAudio(); if (!c) return;
-    var t = c.currentTime + 0.03, dur = 1.1, end = t + dur;
+    var t = c.currentTime + 0.03, dur = 1.4, end = t + dur;
     var nodes = [];
 
     var comp = c.createDynamicsCompressor();   /* 작은 소리를 끌어올려 힘 있게 */
@@ -915,7 +915,7 @@
     var out = c.createGain();                  /* 전체 크기: 빠르게 확 올라가고 끝은 딱 */
     out.gain.setValueAtTime(0, t);
     out.gain.linearRampToValueAtTime(1.0, t + 0.025);
-    out.gain.setValueAtTime(1.0, end - 0.012);
+    out.gain.setValueAtTime(1.0, end - 0.006);
     out.gain.linearRampToValueAtTime(0, end);
     out.connect(comp);
 
