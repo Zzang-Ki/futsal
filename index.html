@@ -211,7 +211,7 @@
   /* 사운드 미리 듣기: 버튼 하나 → 누르면 아래로 세 소리 목록 (항목을 눌러도 닫히지 않고, 바깥이나 버튼을 다시 누르면 닫힘) */
   .topbar { position: relative; z-index: 20; }   /* 목록이 타이머 화면 위로 보이게 */
   .sndgroup { position: relative; }
-  .sndtoggle { display: flex; align-items: center; gap: 0.5em; padding: 0 1.2vw; background-color: var(--panel); color: #E6EDE8; }
+  .sndtoggle { display: flex; align-items: center; gap: 0.5em; padding: 0 1.2vw; background-color: var(--panel); color: var(--dim); }
   .sndtoggle svg { flex: none; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
   .sndtoggle .spk { width: 1.4em; height: 1.4em; }
   .sndtoggle .spk path:first-child { fill: currentColor; }
@@ -236,8 +236,8 @@
   /* 메뉴 탭: 하나의 묶음 안에, 선택된 탭은 엠블럼 금색 */
   .tabs {
     display: flex; gap: 6px; padding: 5px;
-    background: rgba(0,0,0,0.55); border: 2px solid var(--line); border-radius: 18px;
-    box-shadow: inset 0 2px 6px rgba(0,0,0,0.6);
+    background: rgba(28,36,31,0.86); border: 2px solid rgba(255,255,255,0.16); border-radius: 18px;   /* 스코어 기록 줄 박스와 같은 판 */
+    box-shadow: 0 6px 18px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.08);
   }
   .tab { background-color: var(--panel); }
   .tab {
@@ -324,9 +324,24 @@
   /* ---------- 팀 ---------- */
   #viewTeam { padding: 1.4vh 2.5vw 0; }
   input { font: inherit; user-select: text; -webkit-user-select: text; }
-  .team-add { flex: none; display: flex; gap: 0.8vw; }
+  /* 위: 이름 입력 / 넣을 팀 선택을 따로 묶고, 제목은 박스 위쪽 라벨로 (타이머의 경기 시간·종료 전 알림 박스와 같은 모양) */
+  .team-add { flex: none; display: flex; gap: 1.2vw; }
+  .tfield {
+    display: flex; flex-direction: column; gap: calc(1vh + 6px); min-width: 0;
+    padding: calc(1.2vh + 4px) calc(1.2vw + 4px) calc(1.4vh + 4px);
+    background: rgba(28,36,31,0.86); border: 2px solid rgba(255,255,255,0.16); border-radius: 20px;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.08);
+  }
+  .tf-name { flex: 1; }
+  .tf-team { flex: none; }
+  /* 팀 버튼은 한 크기로 고정(타이머 설정 버튼과 같은 400×180), 팀이 늘면 팀 선택 박스가 그만큼 넓어지고 이름 입력칸이 줄어든다 */
+  .tfield input { height: var(--opth); }
+  .tfield .addto { width: var(--optw); height: var(--opth); min-height: 0; padding: 0; font-size: max(18px, 3vh); }
+  .tfield > label { font-size: calc(max(17px, 2.9vh) + 4px + 2pt); font-weight: 400; color: #E6EDE8; line-height: 1.1; }   /* 경기 시간·종료 전 알림 제목과 같은 글자 */
+  #viewTeam .tools .tool { font-size: max(15px, 2.4vh); }   /* 하단 버튼 글자 = 팀 해체 글자와 같은 크기 */
+  .addbtns { display: flex; gap: 0.8vw; }
   .team-add input {
-    flex: 1; min-width: 0; min-height: 56px; height: 7.5vh; padding: 0 1.4vw;
+    flex: none; min-width: 0; min-height: 56px; height: 7.5vh; padding: 0 1.4vw;
     font-size: max(18px, 3vh); color: var(--text);
     background: #0F1411; border: 2px solid #3A473E; border-radius: 14px; outline: none;
   }
@@ -651,8 +666,14 @@
 
   <div class="view" id="viewTeam">
     <div class="team-add">
-      <input id="nameInput" type="text" maxlength="60" enterkeyhint="done" autocomplete="off" placeholder="이름 입력 (띄어쓰기로 여러 명) → 넣을 팀 선택 (우측 팀 버튼)">
-      <div class="team-add" id="addBtns"></div>
+      <div class="tfield tf-name">
+        <label for="nameInput">이름 입력</label>
+        <input id="nameInput" type="text" maxlength="60" enterkeyhint="done" autocomplete="off" placeholder="띄어쓰기로 여러 명">
+      </div>
+      <div class="tfield tf-team">
+        <label>팀 선택</label>
+        <div class="addbtns" id="addBtns"></div>
+      </div>
     </div>
     <div class="team-grid" id="teamGrid"></div>
     <div class="tools">
@@ -683,7 +704,7 @@
 (function () {
   'use strict';
 
-  var APP_VERSION = '0.8.29';
+  var APP_VERSION = '0.8.30';
   var KEY = 'fm.timer.v1';
   var MIN_MS = 60 * 1000;
   var MAX_MS = 99 * 60 * 1000;
