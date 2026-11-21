@@ -226,12 +226,12 @@
   .sndtoggle[aria-expanded="true"] + .sndmenu { display: flex; }
   .sndmenu-title { font-size: max(15px, 2.3vh); font-weight: 400; color: #E6EDE8; text-align: center; padding: 4px 8px 6px; }   /* 위 '미리 듣기' 버튼과 같은 크기 */
   .snditem {
-    display: flex; align-items: center; gap: 0.8em; min-height: 56px; height: 7vh; padding: 0 1.1em;
+    display: flex; align-items: center; gap: 0.6em; min-height: 56px; height: 7vh; padding: 0 1.1em 0 0.7em;   /* 재생 아이콘 왼쪽 여백 줄임 */
     font-size: max(16px, 2.5vh); text-align: left; color: #E6EDE8;
     background: var(--panel); border: 2px solid var(--line); border-radius: 12px;
   }
   .snditem:active { background: var(--line); }
-  .snditem svg { width: 1.2em; height: 1.2em; flex: none; fill: #7CF0A6; }
+  .snditem svg { width: 0.9em; height: 1em; flex: none; fill: #7CF0A6; }
   body:not([data-view="timer"]) .sndgroup, body[data-view="timer"] .mini { display: none; }
   /* 메뉴 탭: 하나의 묶음 안에, 선택된 탭은 엠블럼 금색 */
   .tabs {
@@ -567,9 +567,9 @@
       <button class="topbtn sndtoggle" id="sndToggle" aria-expanded="false"><svg class="spk" viewBox="0 0 24 24"><path d="M3 9.5h3.5L11 5.5v13l-4.5-4H3z"/><path d="M14.5 9a4 4 0 0 1 0 6M17 6.5a7.5 7.5 0 0 1 0 11"/></svg>미리 듣기<svg class="caret" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></button>
       <div class="sndmenu" id="sndMenu">
         <div class="sndmenu-title">사운드 미리 듣기</div>
-        <button class="snditem" id="soundW3"><svg viewBox="0 0 24 24"><path d="M7 4.5l13 7.5-13 7.5z"/></svg>3분 전 알림</button>
-        <button class="snditem" id="soundW1"><svg viewBox="0 0 24 24"><path d="M7 4.5l13 7.5-13 7.5z"/></svg>1분 전 알림</button>
-        <button class="snditem" id="soundEnd"><svg viewBox="0 0 24 24"><path d="M7 4.5l13 7.5-13 7.5z"/></svg>종료 알림</button>
+        <button class="snditem" id="soundW3"><svg viewBox="6 3.5 15 17"><path d="M7 4.5l13 7.5-13 7.5z"/></svg>3분 전 알림</button>
+        <button class="snditem" id="soundW1"><svg viewBox="6 3.5 15 17"><path d="M7 4.5l13 7.5-13 7.5z"/></svg>1분 전 알림</button>
+        <button class="snditem" id="soundEnd"><svg viewBox="6 3.5 15 17"><path d="M7 4.5l13 7.5-13 7.5z"/></svg>종료 알림</button>
       </div>
     </div>
     <div class="version" id="version"></div>
@@ -704,7 +704,7 @@
 (function () {
   'use strict';
 
-  var APP_VERSION = '0.8.31';
+  var APP_VERSION = '0.8.32';
   var KEY = 'fm.timer.v1';
   var MIN_MS = 60 * 1000;
   var MAX_MS = 99 * 60 * 1000;
