@@ -11,19 +11,19 @@
   "theme_color": "#0A0D0B",
   "icons": [
     {
-      "src": "Favicon_FM_192.png?v=3",
+      "src": "Favicon_FM_192.png?v=4",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "App_Icon_512.png?v=3",
+      "src": "App_Icon_512.png?v=4",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "App_Icon_Maskable_512.png?v=3",
+      "src": "App_Icon_Maskable_512.png?v=4",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
